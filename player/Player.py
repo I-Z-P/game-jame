@@ -1,3 +1,5 @@
+# this file contain Player class
+
 import pygame
 from pygame.math import Vector2
 from pygame.locals import *
@@ -10,7 +12,7 @@ class Player():
         self.gravity = gravity
         self.vertical_momentum = 0
         self.max_jumps = max_jumps
-        self.jumps = max_jumps # jumps counter
+        self.jumps = 0 # jumps counter
         self.position = Vector2(starting_position) # player's position
         self.velocity = Vector2([0,0]) # player's velocity
         self.acceleration = Vector2(self.base_acceleration) # player's acceleration
@@ -21,7 +23,7 @@ class Player():
         self.pressing = False
 
     def load_player_body(self, player_images):
-        if player_images != None: # if there are player images load them
+        if player_images: # if there are player images load them
             surfaces = []
             for image_name in player_images:
                 surface = pygame.image.load(image_name).convert_alpha()
@@ -39,7 +41,18 @@ class Player():
                 collisions.append(tile)
         return collisions
 
-    def update(self, dt, tiles=[]):
+    def move_left(self):
+        self.moving_left = True
+        self.moving_right = False
+
+    def move_right(self):
+        self.moving_left = False
+        self.moving_right = True
+
+    def move_up(self):
+        self.jump = True
+
+    def move(self, dt):
         dt *= 100 # normalize
         if abs(self.velocity.x) <= self.max_velocity: # if boundry of max velocity is not crossed
             if self.acceleration.x == 0: self.acceleration.x = self.base_acceleration[0] # if acceleration is turned off then turn it on
@@ -48,7 +61,7 @@ class Player():
             elif self.moving_left: # if true move left
                 self.velocity -= self.acceleration * dt
             else:
-                self.velocity.x = 0 # if player is not moving turn off acceleration
+                self.acceleration.x = 0 # if player is not moving turn off acceleration
         else: # if velocity has crossed boundry
             self.acceleration.x = 0
             self.velocity.x = sign(self.velocity.x) * self.max_velocity # set velocity to max speed
@@ -65,6 +78,8 @@ class Player():
             self.vertical_momentum = self.gravity
         self.position.y += self.vertical_momentum * dt # apply one step of gravity
         self.rect.x = self.position.x # update position on a player
+
+    def check_collisions(self, dt, tiles):
         collisions = self.collide(tiles)
         for tile in collisions:
             if self.moving_right:
@@ -85,3 +100,10 @@ class Player():
                 self.rect.y = self.position.y
                 self.jumps = 0 # if on ground clear jumps counting
                 self.vertical_momentum = 0
+
+    def render(self, screen):
+        pygame.draw.rect(screen, (255,0,0), self.rect)
+
+    def update(self, dt, tiles=[]):
+        self.move(dt)
+        self.check_collisions(dt, tiles)
