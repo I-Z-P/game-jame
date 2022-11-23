@@ -2,7 +2,7 @@
 
 import sys
 sys.path.append('../')
-from core.config import TILE_SIZE
+from core.config import *
 import pygame, sys
 from pytmx.util_pygame import load_pygame
 pygame.init()
@@ -16,12 +16,12 @@ class Tile(pygame.sprite.Sprite):
 
 
 class Level():
-    def __init__(self, file='./data/export/asdf.tmx'):
+    def __init__(self, file=ROOT_PATH+'/level/data/export/asdf.tmx'):
         self.soft_tiles = pygame.sprite.Group()     # tiles that do not collide with the player
         self.hard_tiles = pygame.sprite.Group()     # tiles that collide with the player
         self.tiles = self.load_level(file)
 
-    def load_level(self, file='level/data/export/asdf.tmx'):
+    def load_level(self, file=ROOT_PATH+'/level/data/export/asdf.tmx'):
         tmx_data = load_pygame(file)
         for layer in tmx_data.visible_layers:
             print(layer.name)
@@ -36,19 +36,19 @@ class Level():
                         Tile(pos = pos, surf = surf, groups = self.soft_tiles)
 
     def render(self, screen):
-        level.soft_tiles.draw(screen)
-        level.hard_tiles.draw(screen)
+        self.soft_tiles.draw(screen)
+        self.hard_tiles.draw(screen)
 
 
-screen = pygame.display.set_mode((1280,720))
-level = Level()
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
+if __name__ == '__main__':
+    if DEV:
+        screen = pygame.display.set_mode((1280,720))
+        level = Level()
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
 
-    screen.fill('black')
-    level.render(screen)
-
-    pygame.display.update()
+            level.render(screen)
+            pygame.display.update()
