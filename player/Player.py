@@ -92,11 +92,11 @@ class Player():
         collisions = self.collide(tiles)
         for tile in collisions:
             if self.vertical_momentum < 0:
-                self.position.y = tile.bottom
+                self.position.y = tile.rect.bottom
                 self.rect.y = self.position.y
                 self.vertical_momentum = 0.5
             else:
-                self.position.y = (tile.top - self.rect.h)
+                self.position.y = (tile.rect.top - self.rect.h)
                 self.rect.y = self.position.y
                 self.jumps = 0 # if on ground clear jumps counting
                 self.vertical_momentum = 0
