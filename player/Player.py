@@ -1,12 +1,15 @@
 # this file contain Player class
 
+import sys
+sys.path.append('../')
+from core.config import *
 import pygame
 from pygame.math import Vector2
 from pygame.locals import *
 from numpy import sign
 
 class Player():
-    def __init__(self, gravity=4, max_jumps=1, starting_position=[0,0], acceleration=[0.2,0], max_velocity=5, player_images=None):
+    def __init__(self, gravity=4, max_jumps=1, starting_position=[WINDOW_WIDTH//2,0], acceleration=[0.2,0], max_velocity=5, player_images=None):
         self.base_acceleration = acceleration
         self.max_velocity = abs(max_velocity)
         self.gravity = gravity
