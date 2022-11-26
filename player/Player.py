@@ -17,6 +17,7 @@ class Player():
         self.max_jumps = max_jumps
         self.jumps = 0 # jumps counter
         self.position = Vector2(starting_position) # player's position
+        self.shift = Vector2(0,0)
         self.velocity = Vector2([0,0]) # player's velocity
         self.acceleration = Vector2(self.base_acceleration) # player's acceleration
         self.model, self.rect = self.load_player_body(player_images)
@@ -57,6 +58,7 @@ class Player():
 
     def move(self, dt):
         dt *= 100 # normalize
+        self.shift = Vector2(0, 0)
         if abs(self.velocity.x) <= self.max_velocity: # if boundry of max velocity is not crossed
             if self.acceleration.x == 0: self.acceleration.x = self.base_acceleration[0] # if acceleration is turned off then turn it on
             if self.moving_right:
@@ -70,7 +72,8 @@ class Player():
         else:
             self.acceleration.x = 0
             self.velocity.x = sign(self.velocity.x) * self.max_velocity
-        self.position.x += self.velocity.x * dt
+        self.shift.x += self.velocity.x * dt
+        self.position.x += self.shift.x
         if self.jump:
             if self.jumps < self.max_jumps and not self.pressing:
                 self.vertical_momentum = -4 # static jump for now
@@ -81,8 +84,8 @@ class Player():
         self.vertical_momentum += dt/self.gravity
         if self.vertical_momentum > self.gravity:
             self.vertical_momentum = self.gravity
-        self.position.y += self.vertical_momentum * dt
-        self.rect.x = self.position.x
+        self.shift.y += self.vertical_momentum * dt
+        self.position.y += self.shift.y
 
     def check_collisions(self, dt, tiles):
         collisions = self.collide(tiles)
