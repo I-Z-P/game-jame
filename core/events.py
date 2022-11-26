@@ -25,9 +25,7 @@ def handle_events(player):
             keyboard_assignments(event, player)
         # temporarly added in order to fix player movement
         elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_UP:
-                player.jump = False
-            elif event.key == pygame.K_RIGHT:
+            if event.key == pygame.K_RIGHT:
                 player.moving_right = False
             elif event.key == pygame.K_LEFT:
                 player.moving_left = False

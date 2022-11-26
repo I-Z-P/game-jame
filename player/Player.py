@@ -13,47 +13,80 @@ class Animation(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.n_animations = 0
+        self.current_running_sprite = 0
 
-    def load_player_body(self, player_images=[]):
+    def load_player_body(self, player_images=[], sprite_sheet=False):
         self.sprites = []
-        for image_name in player_images:
-            try:
-                sprite = pygame.image.load(image_name + ".png").convert()
-                sprite.set_colorkey((255, 255, 255))
-                sprite = pygame.transform.scale(sprite, (TILE_SIZE/4, TILE_SIZE/2))
-                self.sprites.append(sprite)
-                self.n_animations += 1
-            except FileNotFoundError as e:
-                print(e) # inform which file does not exist
-        if self.sprites:
-            self.rect = self.sprites[0].get_rect()
-            self.sprites_flipped = [pygame.transform.flip(sprite, True, False) for sprite in self.sprites]
-            self.current_running_sprite = 0
-            self.image = self.sprites[self.current_running_sprite]
-        else:
-            self.rect = pygame.Rect(0,0,TILE_SIZE/4,TILE_SIZE/2)
-            return False
+        if not sprite_sheet:
+            for image_name in player_images:
+                try:
+                    sprite = pygame.image.load(image_name + ".png").convert()
+                    sprite.set_colorkey((255, 255, 255))
+                    sprite = pygame.transform.scale(sprite, (TILE_SIZE/4, TILE_SIZE/2))
+                    self.sprites.append(sprite)
+                    self.n_animations += 1
+                except FileNotFoundError as e:
+                    print(e) # inform which file does not exist
+            if self.sprites:
+                self.rect = self.sprites[0].get_rect()
+                self.sprites_flipped = [pygame.transform.flip(sprite, True, False) for sprite in self.sprites]
+                self.current_running_sprite = 0
+                self.image = self.sprites[self.current_running_sprite]
+            else:
+                self.rect = pygame.Rect(0,0,TILE_SIZE/4,TILE_SIZE/2)
+                return False
+
+        elif sprite_sheet:
+            self.sprites = {}
+            self.sprites_flipped = {}
+            for type, values in player_images.items():
+                self.n_animations = values[1]
+                self.sprites[type] = [self.n_animations, []]
+                self.sprites_flipped[type] = [self.n_animations, []]
+                self.sprite_sheet = pygame.image.load(values[0]).convert()
+                self.sprite_width = self.sprite_sheet.get_size()[0] / self.n_animations
+                self.sprite_height = self.sprite_sheet.get_size()[1]
+                for x in range(self.n_animations):
+                    self.sprites[type][1].append(self.get_sprite(x*self.sprite_width,0,self.sprite_width,self.sprite_height))
+                    self.sprites_flipped[type][1].append(pygame.transform.flip(self.sprites[type][1][x], True, False))
+            self.rect = self.sprites['run'][1][0].get_rect()
+            
         return True
+
+    def get_sprite(self, x, y, w, h):
+        sprite = pygame.Surface((w,h-20))
+        sprite.set_colorkey((0,0,0))
+        sprite.blit(self.sprite_sheet, (0,0), (x, y, w, h))
+        return sprite
 
     def right(self, dt):
         dt /= 10 # normalize
         self.current_running_sprite += dt
-        self.image = self.sprites[int(self.current_running_sprite%self.n_animations)]
+        self.image = self.sprites['run'][1][int(self.current_running_sprite%self.sprites['run'][0])]
 
     def left(self, dt):
         dt /= 10 # normalize
         self.current_running_sprite += dt
-        self.image = self.sprites_flipped[int(self.current_running_sprite%self.n_animations)]
+        self.image = self.sprites_flipped['run'][1][int(self.current_running_sprite%self.sprites_flipped['run'][0])]
+
+    def jump(self, dt):
+        dt /= 10 # normalize
+        self.current_running_sprite += dt
+        try:
+            self.image = self.sprites['jump'][1][int(self.current_running_sprite%self.sprites['jump'][0])]
+        except KeyError:
+            pass
 
     def standing(self, facing_left):
+        #self.current_running_sprite = 0
         if facing_left:
-            self.image = self.sprites_flipped[0]
+            self.image = self.sprites_flipped['run'][1][0]
         else:
-            self.image = self.sprites[0]
+            self.image = self.sprites['run'][1][0]
 
 
 class Player():
-    def __init__(self, gravity=8, max_jumps=1, starting_position=[0,0], acceleration=[0.2,0], max_velocity=5, player_images=[]):
+    def __init__(self, gravity=8, max_jumps=1, starting_position=[0,0], acceleration=[0.2,0], max_velocity=5, player_images={"run":["../player/Knight/noBKG_KnightRun_strip.png", 8]}):
         self.base_acceleration = acceleration
         self.max_velocity = abs(max_velocity)
         self.gravity = gravity
@@ -72,7 +105,7 @@ class Player():
 
     def initialize_animation(self, player_images):
         self.a = Animation()
-        if self.a.load_player_body(player_images):
+        if self.a.load_player_body(player_images, True):
             self.animate = True
         else:
             self.animate = False
@@ -153,6 +186,7 @@ class Player():
                 self.position.y = (tile.rect.top - self.rect.h)
                 self.rect.y = self.position.y
                 self.jumps = 0
+                self.jump = False
                 self.vertical_momentum = 0
 
     def animation(self, screen):
@@ -160,7 +194,9 @@ class Player():
             self.a.right(self.dt)
         elif self.moving_left:
             self.a.left(self.dt)
-        else:
+        if self.jump:
+            self.a.jump(self.dt)
+        elif not self.moving_right and not self.moving_left:
             self.a.standing(self.facing_left) 
         self.sprite_group.draw(screen)
 
