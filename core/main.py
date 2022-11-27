@@ -5,6 +5,7 @@ sys.path.append('../')
 from player.player import Player
 from level.level import Level
 from level.camera import Camera
+from ui.menu import Menu
 from config import *
 from events import *
 from render import *
@@ -33,6 +34,9 @@ def game_loop(screen, level, player, camera):
 
 def launch_the_game():
     screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+    if not DEV:
+        menu = Menu()
+        menu.loop(screen)
     level = Level()
     player = Player()
     camera = Camera(screen)
