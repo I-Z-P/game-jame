@@ -33,7 +33,7 @@ class Animation(pygame.sprite.Sprite):
                 self.current_running_sprite = 0
                 self.image = self.sprites[self.current_running_sprite]
             else:
-                self.rect = pygame.Rect(0,0,TILE_SIZE/4,TILE_SIZE/2)
+                self.rect = pygame.Rect(0,0,TILE_SIZE,TILE_SIZE)
                 return False
 
         elif sprite_sheet:
@@ -59,10 +59,14 @@ class Animation(pygame.sprite.Sprite):
         sprite.blit(self.sprite_sheet, (0,0), (x, y, w, h))
         return sprite
 
-    def right(self, dt):
+    def right(self, dt, facing_left):
         dt /= 10 # normalize
         self.current_running_sprite += dt
-        self.image = self.sprites['run'][1][int(self.current_running_sprite%self.sprites['run'][0])]
+        index = int(self.current_running_sprite%self.sprites['run'][0])
+        if not facing_left:
+            self.image = self.sprites['run'][1][index]
+        else:
+            self.image = self.sprites_flipped['run'][1][index]
 
     def left(self, dt):
         dt /= 10 # normalize
@@ -86,7 +90,7 @@ class Animation(pygame.sprite.Sprite):
 
 
 class Player():
-    def __init__(self, gravity=8, max_jumps=1, starting_position=[0,0], acceleration=[0.2,0], max_velocity=5, player_images={"run":["../player/Knight/noBKG_KnightRun_strip.png", 8]}):
+    def __init__(self, gravity=8, max_jumps=1000, starting_position=[0,0], acceleration=[0.2,0], max_velocity=3, player_images={"run":["../player/Knight/noBKG_KnightRun_strip.png", 8]}):
         self.base_acceleration = acceleration
         self.max_velocity = abs(max_velocity)
         self.gravity = gravity
@@ -105,7 +109,7 @@ class Player():
 
     def initialize_animation(self, player_images):
         self.a = Animation()
-        if self.a.load_player_body(player_images, True):
+        if self.a.load_player_body(player_images, False):
             self.animate = True
         else:
             self.animate = False
@@ -123,10 +127,8 @@ class Player():
 
     def move_left(self):
         self.moving_left = True
-        self.moving_right = False
 
     def move_right(self):
-        self.moving_left = False
         self.moving_right = True
 
     def move_up(self):
@@ -139,28 +141,27 @@ class Player():
             if self.acceleration.x == 0: self.acceleration.x = self.base_acceleration[0] # if acceleration is turned off then turn it on
             if self.moving_right:
                 self.facing_left = False
-                #self.animate = True
-                self.velocity += self.acceleration * dt
-            elif self.moving_left:
+                self.velocity.x += self.acceleration.x * dt
+            if self.moving_left:
                 self.facing_left = True
-                #self.animate = True
-                self.velocity -= self.acceleration * dt
-            else:
+                self.velocity.x -= self.acceleration.x * dt
+            if self.moving_left and self.moving_right or not self.moving_left and not self.moving_right:
                 if abs(self.velocity.x) < abs(self.acceleration.x): self.velocity.x = 0
                 else:
-                    self.velocity.x += -sign(self.velocity.x) * self.acceleration.x/self.gravity
+                    self.velocity.x += -sign(self.velocity.x) * self.acceleration.x/10
         else:
             self.acceleration.x = 0
             self.velocity.x = sign(self.velocity.x) * self.max_velocity
         self.position.x += self.velocity.x * dt
         if self.jump:
             if self.jumps < self.max_jumps and not self.pressing:
+                self.gravity = 8
                 self.vertical_momentum = -self.gravity#-4 # static jump for now
                 self.jumps += 1
                 self.pressing = True # initialize space pressing
         else:
             self.pressing = False # user stopped pressing space
-        self.vertical_momentum += dt/self.gravity
+        self.vertical_momentum += self.gravity/100
         if self.vertical_momentum > self.gravity:
             self.vertical_momentum = self.gravity
         self.position.y += self.vertical_momentum * dt
@@ -169,31 +170,31 @@ class Player():
     def check_collisions(self, dt, tiles):
         collisions = self.collide(tiles)
         for tile in collisions:
+            self.acceleration.x = 0
             if self.moving_right:
-                self.position.x -= self.velocity.x * dt
+                self.position.x = tile.rect.x - TILE_SIZE
                 self.rect.x = self.position.x
             elif self.moving_left:
-                self.position.x += self.velocity.x * dt
+                self.position.x = tile.rect.x + TILE_SIZE
                 self.rect.x = self.position.x
         self.rect.y = self.position.y
         collisions = self.collide(tiles)
         for tile in collisions:
             if self.vertical_momentum < 0:
-                self.position.y = tile.rect.bottom
+                self.position.y += (self.position.y % TILE_SIZE)
                 self.rect.y = self.position.y
                 self.vertical_momentum = self.gravity/10
             else:
-                self.position.y = (tile.rect.top - self.rect.h)
+                self.position.y -= (self.position.y % TILE_SIZE)
                 self.rect.y = self.position.y
                 self.jumps = 0
                 self.jump = False
                 self.vertical_momentum = 0
+                self.gravity = 0
 
     def animation(self, screen):
-        if self.moving_right:
-            self.a.right(self.dt)
-        elif self.moving_left:
-            self.a.left(self.dt)
+        if self.moving_right or self.moving_left:
+            self.a.right(self.dt, self.facing_left)
         if self.jump:
             self.a.jump(self.dt)
         elif not self.moving_right and not self.moving_left:
