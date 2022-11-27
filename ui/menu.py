@@ -4,6 +4,7 @@
 import sys
 sys.path.append('../')
 from core.config import *
+from misc.fade_transition import *
 import pygame
 from pygame.math import Vector2
 pygame.init()
@@ -99,6 +100,7 @@ class Menu():
             for button in self.buttons:
                 button.render(screen)
             pygame.display.update()
+        fade_transition(screen)
 
 
 if __name__ == "__main__":
