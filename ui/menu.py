@@ -16,18 +16,25 @@ class Button():
         self.font = pygame.font.Font(str(ROOT_PATH + '/ui/font.ttf'), 70)
         self.font_color = (0,0,0)
         self.font_color_hover = (76, 88, 94)
-        self.surface = image
-        self.surface_hover = image_hover
-        if not self.surface:
+        if image:
+            self.surface = pygame.image.load(image).convert_alpha()
+        else:
             self.surface = self.font.render(self.text, True, self.font_color)
-        if not self.surface_hover:
+        if image_hover:
+            self.surface_hover = pygame.image.load(image_hover).convert_alpha()
+        else:
             self.surface_hover = self.font.render(self.text, True, self.font_color_hover)
         self.rect = self.surface.get_rect()
         self.rect.x = self.position.x
         self.rect.y = self.position.y
+        self.is_hovered = False
 
     def render(self, screen, mouse):
         if self.rect.collidepoint(mouse):
+            self.is_hovered = True
+        else:
+            self.is_hovered = False
+        if self.is_hovered:
             screen.blit(self.surface_hover, self.position)
         else:
             screen.blit(self.surface, self.position)
