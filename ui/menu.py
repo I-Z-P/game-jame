@@ -87,23 +87,33 @@ class Menu():
         if self.hovered_button > 0:
             self.hovered_button -= 1
 
+    def render(self, screen):
+        screen.fill(self.background_color)
+        for button in self.buttons:
+            button.render(screen)
+
     def loop(self, screen):
         while self.open:
             mouse = pygame.mouse.get_pos()
-            screen.fill(self.background_color)
             for button in self.buttons:
                 button.is_hovered = False
                 if button.rect.collidepoint(mouse):
                     self.hovered_button = self.buttons.index(button)
             self.buttons[self.hovered_button].is_hovered = True
             self.events(mouse)
-            for button in self.buttons:
-                button.render(screen)
+            self.render(screen)
             pygame.display.update()
-        fade_transition(screen)
+
+
+    def launch_menu(self, screen):
+        # screen.fill(self.background_color)
+        # self.render(screen)
+        fade_in_transition(screen, lambda: self.render(screen))
+        self.loop(screen)
+        fade_out_transition(screen)
 
 
 if __name__ == "__main__":
     screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     menu = Menu()
-    menu.loop(screen)
+    menu.launch_menu(screen)

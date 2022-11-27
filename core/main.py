@@ -6,6 +6,7 @@ from player.player import Player
 from level.level import Level
 from level.camera import Camera
 from ui.menu import Menu
+from misc.fade_transition import *
 from config import *
 from events import *
 from render import *
@@ -36,10 +37,12 @@ def launch_the_game():
     screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     if not DEV:
         menu = Menu()
-        menu.loop(screen)
+        menu.launch_menu(screen)
     level = Level()
     player = Player()
     camera = Camera(screen)
+    if not DEV:
+        fade_in_transition(screen, lambda: render(screen, player, level, camera))
     game_loop(screen, level, player, camera)
 
 
