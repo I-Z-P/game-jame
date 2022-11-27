@@ -21,7 +21,7 @@ def debug_msg(info, x = 10, y = 10):
 
 
 # pin render functions here
-def render(screen, player, level):
+def render(screen, player, level, camera):
     screen.fill((49, 113, 181)) # background color
-    level.render(screen)
+    level.render(screen, camera)
     player.render(screen)
