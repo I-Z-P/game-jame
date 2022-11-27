@@ -9,7 +9,7 @@ from pygame.math import Vector2
 
 
 class Camera():
-    def __init__(self, display, model='follow_player'):
+    def __init__(self, display, model='static'):
         self.display = display
         self.model = model
         self.half_w = self.display.get_size()[0] // 2
