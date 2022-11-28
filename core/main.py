@@ -29,15 +29,15 @@ def game_loop(screen, level, player, camera):
         delta_time = time.time() - previous_time
         previous_time = time.time()
         update(delta_time, player, level, camera)
-        handle_events(player)
+        handle_events(screen, player)
         pygame.display.update()
 
 
 def launch_the_game():
     screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     if not DEV:
-        menu = Menu()
-        menu.launch_menu(screen)
+        menu = Menu(screen)
+        menu.launch_menu()
     level = Level()
     player = Player()
     camera = Camera(screen)
