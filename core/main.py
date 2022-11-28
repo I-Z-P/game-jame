@@ -43,13 +43,14 @@ class Game():
         if not DEV:
             menu = Menu(self.screen, self)
             menu.launch_menu()
-            fade_in_transition(self.screen, lambda: render(self.screen, self.player, self.level, self.camera))
         self.new_game()
 
     def new_game(self):
         self.level = Level()
         self.player = Player()
         self.camera = Camera(self.screen)
+        if not DEV:
+            fade_in_transition(self.screen, lambda: render(self.screen, self.player, self.level, self.camera))
         self.loop()
 
 
