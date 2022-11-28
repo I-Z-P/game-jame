@@ -13,7 +13,7 @@ TICKRATE = 60
 TILE_SIZE = 128
 
 # debugging and console logging
-DEV = True
+DEV = False
 if not DEV:
     import os
     os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"

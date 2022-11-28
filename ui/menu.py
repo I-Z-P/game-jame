@@ -39,10 +39,12 @@ class Button():
 
 
 class Menu():
-    def __init__(self):
+    def __init__(self, screen, game):
+        self.screen = screen
+        self.game = game
         self.open = True
         self.background_color = (138, 151, 171)
-        self.start_button = Button(pos=[WINDOW_WIDTH/6, WINDOW_HEIGHT/10*5], on_click=self.start, text="Start", image=None, image_hover=None, is_hovered=True)
+        self.start_button = Button(pos=[WINDOW_WIDTH/6, WINDOW_HEIGHT/10*5], on_click=self.start, text="New Game", image=None, image_hover=None, is_hovered=True)
         self.settings_button = Button(pos=[WINDOW_WIDTH/6, WINDOW_HEIGHT/10*6], on_click=self.settings, text="Settings", image=None, image_hover=None)
         self.exit_button = Button(pos=[WINDOW_WIDTH/6, WINDOW_HEIGHT/10*7], on_click=self.exit_game, text="Exit", image=None, image_hover=None)
         self.buttons = [self.start_button, self.settings_button, self.exit_button]
@@ -69,6 +71,8 @@ class Menu():
     def start(self):
         if DEV: print('Start button clicked')
         self.open = False
+        fade_out_transition(self.screen)
+        self.game.new_game()
 
     def settings(self):
         if DEV: print('Settings button clicked')
@@ -76,6 +80,7 @@ class Menu():
     def exit_game(self):
         if DEV: print('Exit button clicked')
         self.open = False
+        fade_out_transition(self.screen)
         pygame.quit()
         sys.exit()
 
@@ -87,12 +92,12 @@ class Menu():
         if self.hovered_button > 0:
             self.hovered_button -= 1
 
-    def render(self, screen):
-        screen.fill(self.background_color)
+    def render(self):
+        self.screen.fill(self.background_color)
         for button in self.buttons:
-            button.render(screen)
+            button.render(self.screen)
 
-    def loop(self, screen):
+    def loop(self):
         while self.open:
             mouse = pygame.mouse.get_pos()
             for button in self.buttons:
@@ -101,19 +106,45 @@ class Menu():
                     self.hovered_button = self.buttons.index(button)
             self.buttons[self.hovered_button].is_hovered = True
             self.events(mouse)
-            self.render(screen)
+            self.render()
             pygame.display.update()
 
+    def launch_menu(self):
+        fade_in_transition(self.screen, self.render)
+        self.loop()
+        fade_out_transition(self.screen)
 
-    def launch_menu(self, screen):
-        # screen.fill(self.background_color)
-        # self.render(screen)
-        fade_in_transition(screen, lambda: self.render(screen))
-        self.loop(screen)
-        fade_out_transition(screen)
+
+class In_game_menu(Menu):
+    def __init__(self, screen, game):
+        self.screen = screen
+        self.game = game
+        self.open = True
+        self.background_color = (138, 151, 171)
+        self.start_button = Button(pos=[WINDOW_WIDTH/6, WINDOW_HEIGHT/10*5], on_click=self.exit_menu, text="Resume game", image=None, image_hover=None, is_hovered=True)
+        self.settings_button = Button(pos=[WINDOW_WIDTH/6, WINDOW_HEIGHT/10*6], on_click=self.settings, text="Settings", image=None, image_hover=None)
+        self.exit_button = Button(pos=[WINDOW_WIDTH/6, WINDOW_HEIGHT/10*7], on_click=self.main_menu, text="Main menu", image=None, image_hover=None)
+        self.buttons = [self.start_button, self.settings_button, self.exit_button]
+        self.hovered_button = 0   # index in self.buttons
+
+    def launch_menu(self):
+        self.loop()
+
+    def exit_menu(self):
+        if DEV: print('Game resumed')
+        self.open = False
+        fade_out_transition(self.screen)
+
+    def main_menu(self):
+        if DEV: print('Back to main menu')
+        self.open = False
+        menu = Menu(self.screen, self.game)
+        menu.launch_menu()
 
 
 if __name__ == "__main__":
     screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-    menu = Menu()
-    menu.launch_menu(screen)
+    menu = Menu(screen)
+    menu.launch_menu()
+    in_game_menu = In_game_menu(screen)
+    in_game_menu.launch_menu()
