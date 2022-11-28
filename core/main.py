@@ -36,14 +36,20 @@ class Game():
             delta_time = time.time() - previous_time
             previous_time = time.time()
             self.update(delta_time)
-            handle_events(self.screen, self.player)
+            handle_events(self)
             pygame.display.update()
 
     def launch_the_game(self):
         if not DEV:
-            menu = Menu(self.screen)
+            menu = Menu(self.screen, self)
             menu.launch_menu()
             fade_in_transition(self.screen, lambda: render(self.screen, self.player, self.level, self.camera))
+        self.new_game()
+
+    def new_game(self):
+        self.level = Level()
+        self.player = Player()
+        self.camera = Camera(self.screen)
         self.loop()
 
 

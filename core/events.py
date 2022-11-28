@@ -8,11 +8,11 @@ sys.path.append('../')
 from ui.menu import In_game_menu
 
 
-def keyboard_assignments(event, screen, player):
+def keyboard_assignments(event, screen, player, game):
     if DEV: print('Pressed key in ascii:', event.key) 
     pressed_keys = pygame.key.get_pressed()
     if pressed_keys[pygame.K_ESCAPE]:
-        in_game_menu = In_game_menu(screen)
+        in_game_menu = In_game_menu(game.screen, game)
         in_game_menu.loop()
     if pressed_keys[pygame.K_LEFT]:
         player.move_left()
@@ -21,12 +21,14 @@ def keyboard_assignments(event, screen, player):
     if pressed_keys[pygame.K_UP]:
         player.move_up()
 
-def handle_events(screen, player):
+def handle_events(game):
+    screen = game.screen
+    player = game.player
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
         if event.type == pygame.KEYDOWN:
-            keyboard_assignments(event, screen, player)
+            keyboard_assignments(event, screen, player, game)
         # temporarly added in order to fix player movement
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_UP:

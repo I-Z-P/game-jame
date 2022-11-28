@@ -39,11 +39,12 @@ class Button():
 
 
 class Menu():
-    def __init__(self, screen):
+    def __init__(self, screen, game):
         self.screen = screen
+        self.game = game
         self.open = True
         self.background_color = (138, 151, 171)
-        self.start_button = Button(pos=[WINDOW_WIDTH/6, WINDOW_HEIGHT/10*5], on_click=self.start, text="Start", image=None, image_hover=None, is_hovered=True)
+        self.start_button = Button(pos=[WINDOW_WIDTH/6, WINDOW_HEIGHT/10*5], on_click=self.start, text="New Game", image=None, image_hover=None, is_hovered=True)
         self.settings_button = Button(pos=[WINDOW_WIDTH/6, WINDOW_HEIGHT/10*6], on_click=self.settings, text="Settings", image=None, image_hover=None)
         self.exit_button = Button(pos=[WINDOW_WIDTH/6, WINDOW_HEIGHT/10*7], on_click=self.exit_game, text="Exit", image=None, image_hover=None)
         self.buttons = [self.start_button, self.settings_button, self.exit_button]
@@ -70,6 +71,7 @@ class Menu():
     def start(self):
         if DEV: print('Start button clicked')
         self.open = False
+        self.game.new_game()
 
     def settings(self):
         if DEV: print('Settings button clicked')
@@ -112,8 +114,9 @@ class Menu():
 
 
 class In_game_menu(Menu):
-    def __init__(self, screen):
+    def __init__(self, screen, game):
         self.screen = screen
+        self.game = game
         self.open = True
         self.background_color = (138, 151, 171)
         self.start_button = Button(pos=[WINDOW_WIDTH/6, WINDOW_HEIGHT/10*5], on_click=self.exit_menu, text="Resume game", image=None, image_hover=None, is_hovered=True)
@@ -132,7 +135,7 @@ class In_game_menu(Menu):
     def main_menu(self):
         if DEV: print('Back to main menu')
         self.open = False
-        menu = Menu(self.screen)
+        menu = Menu(self.screen, self.game)
         menu.launch_menu()
 
 
