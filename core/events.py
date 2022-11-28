@@ -20,6 +20,10 @@ def keyboard_assignments(event, screen, player, game):
         player.move_right()
     if pressed_keys[pygame.K_UP]:
         player.move_up()
+    if pressed_keys[pygame.K_SPACE]:
+        player.attack()
+    if pressed_keys[pygame.K_s]:
+        player.shield()
 
 def handle_events(game):
     screen = game.screen
@@ -31,9 +35,7 @@ def handle_events(game):
             keyboard_assignments(event, screen, player, game)
         # temporarly added in order to fix player movement
         elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_UP:
-                player.jump = False
-            elif event.key == pygame.K_RIGHT:
+            if event.key == pygame.K_RIGHT:
                 player.moving_right = False
             elif event.key == pygame.K_LEFT:
                 player.moving_left = False
