@@ -27,18 +27,18 @@ class Game():
     # pin update functions to run in each iteration here
     def update(self, delta_time):
         # debug_msg(delta_time)
-        self.player.update(delta_time, tiles=self.level.hard_tiles)
+        self.player.update(self, delta_time)
         self.camera.update(self.player)
 
     def loop(self):
         previous_time = time.time()
         while True:
-            render(self.screen, self.player, self.level, self.camera, self.fps_counter)
             delta_time = time.time() - previous_time
             previous_time = time.time()
             self.update(delta_time)
-            handle_events(self)
+            render(self.screen, self.player, self.level, self.camera, self.fps_counter)
             pygame.display.update()
+            handle_events(self)
             if FPS_COUNTER:
                 self.fps_counter.clock.tick(TICKRATE)
 
