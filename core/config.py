@@ -13,7 +13,7 @@ TICKRATE = 200
 TILE_SIZE = 128
 
 # debugging and console logging
-DEV = False
+DEV = True
 FPS_COUNTER = True
 if not DEV:
     import os

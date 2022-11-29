@@ -108,9 +108,9 @@ class Player():
         self.acceleration = Vector2(self.base_acceleration) # player's acceleration
         self.dt = 0
         self.initialize_animation(player_images)
-        self.moving_right = False
-        self.moving_left = False
-        self.jump = False
+        self.go_right = False
+        self.go_left = False
+        self.go_up = False
         self.pressing = False
         self.on_ground = False
         self.attacking = False
@@ -138,15 +138,6 @@ class Player():
                 collisions.append(tile)
         return collisions
 
-    def move_left(self):
-        self.moving_left = True
-
-    def move_right(self):
-        self.moving_right = True
-
-    def move_up(self):
-        self.jump = True
-
     def attack(self):
         self.attacking = True
         if not self.particle_effect:
@@ -165,13 +156,13 @@ class Player():
         self.shift = Vector2(0, 0)
         if abs(self.velocity.x) <= self.max_velocity: # if boundry of max velocity is not crossed
             if self.acceleration.x == 0: self.acceleration.x = self.base_acceleration[0] # if acceleration is turned off then turn it on
-            if self.moving_right:
+            if self.go_right:
                 self.facing_left = False
                 self.velocity.x += self.acceleration.x * dt
-            if self.moving_left:
+            if self.go_left:
                 self.facing_left = True
                 self.velocity.x -= self.acceleration.x * dt
-            if self.moving_left and self.moving_right or not self.moving_left and not self.moving_right:
+            if self.go_left and self.go_right or not self.go_left and not self.go_right:
                 if abs(self.velocity.x) < abs(self.acceleration.x): self.velocity.x = 0
                 else:
                     self.velocity.x += -sign(self.velocity.x) * self.acceleration.x/10
@@ -180,7 +171,7 @@ class Player():
             self.velocity.x = sign(self.velocity.x) * self.max_velocity
         self.shift.x += self.velocity.x * dt
         self.position.x += self.shift.x
-        if self.jump:
+        if self.go_up:
             if self.jumps < self.max_jumps and not self.pressing:
                 self.vertical_momentum = -self.gravity
                 self.jumps += 1
@@ -201,10 +192,10 @@ class Player():
         collisions = self.collide(tiles)
         for tile in collisions:
             self.acceleration.x = 0
-            if self.moving_right:
+            if self.go_right:
                 self.position.x = tile.rect.x - TILE_SIZE
                 self.rect.x = self.position.x
-            elif self.moving_left:
+            elif self.go_left:
                 self.position.x = tile.rect.x + TILE_SIZE
                 self.rect.x = self.position.x
         self.rect.y = self.position.y
@@ -219,7 +210,7 @@ class Player():
                     self.position.y = tile.rect.top - self.rect.h
                     self.rect.y = self.position.y
                     self.jumps = 0
-                    self.jump = False
+                    self.go_up = False
                     self.vertical_momentum = 0
                     self.on_ground = True
         else:
@@ -227,11 +218,11 @@ class Player():
 
     def animation(self, screen):
         self.particle_effect = self.p.splash(self.dt, screen)
-        if self.moving_right or self.moving_left:
+        if self.go_right or self.go_left:
             type = 'run'
-        if self.jump:
+        if self.go_up:
             type = 'jump'
-        elif not self.moving_right and not self.moving_left:
+        elif not self.go_right and not self.go_left:
             type = 'stand'
         if self.rolling:
             type = 'roll'
