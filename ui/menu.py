@@ -44,10 +44,11 @@ class Menu():
         self.game = game
         self.open = True
         self.background_color = (138, 151, 171)
-        self.start_button = Button(pos=[WINDOW_WIDTH/6, WINDOW_HEIGHT/10*5], on_click=self.start, text="New Game", image=None, image_hover=None, is_hovered=True)
-        self.settings_button = Button(pos=[WINDOW_WIDTH/6, WINDOW_HEIGHT/10*6], on_click=self.settings, text="Settings", image=None, image_hover=None)
-        self.exit_button = Button(pos=[WINDOW_WIDTH/6, WINDOW_HEIGHT/10*7], on_click=self.exit_game, text="Exit", image=None, image_hover=None)
-        self.buttons = [self.start_button, self.settings_button, self.exit_button]
+        self.start_button = Button(pos=[WINDOW_WIDTH/10, WINDOW_HEIGHT/10*5], on_click=self.start, text="New Game", image=None, image_hover=None, is_hovered=True)
+        self.load_button = Button(pos=[WINDOW_WIDTH/10, WINDOW_HEIGHT/10*6], on_click=self.load_game, text="Load Game", image=None, image_hover=None)
+        self.settings_button = Button(pos=[WINDOW_WIDTH/10, WINDOW_HEIGHT/10*7], on_click=self.settings, text="Settings", image=None, image_hover=None)
+        self.exit_button = Button(pos=[WINDOW_WIDTH/10, WINDOW_HEIGHT/10*8], on_click=self.exit_game, text="Exit", image=None, image_hover=None)
+        self.buttons = [self.start_button, self.load_button, self.settings_button, self.exit_button]
         self.hovered_button = 0   # index in self.buttons
 
     def events(self, mouse):
@@ -70,6 +71,12 @@ class Menu():
 
     def start(self):
         if DEV: print('Start button clicked')
+        self.open = False
+        fade_out_transition(self.screen)
+        self.game.new_game()
+
+    def load_game(self):
+        if DEV: print('Load game button clicked')
         self.open = False
         fade_out_transition(self.screen)
         self.game.new_game()
@@ -144,7 +151,7 @@ class In_game_menu(Menu):
 
 if __name__ == "__main__":
     screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-    menu = Menu(screen)
+    menu = Menu(screen, None)
     menu.launch_menu()
     in_game_menu = In_game_menu(screen)
     in_game_menu.launch_menu()
