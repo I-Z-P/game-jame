@@ -16,6 +16,8 @@ def keyboard_assignments(event, player):
         player.move_right()
     if pressed_keys[pygame.K_UP]:
         player.move_up()
+    if pressed_keys[pygame.K_DOWN]:
+        player.roll()
     if pressed_keys[pygame.K_SPACE]:
         player.attack()
     if pressed_keys[pygame.K_s]:

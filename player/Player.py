@@ -7,17 +7,15 @@ import pygame
 from pygame.math import Vector2
 from pygame.locals import *
 from numpy import sign
+from particles.particles import Particles 
 
 
 class Animation(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, gravity, scale=2):
         super().__init__()
         self.n_animations = 0
-        self.current_running_sprite_attack = 0
-        self.current_running_sprite_run = 0
-        self.current_running_sprite_jump = 0
-        self.current_running_sprite_stand = 0
-        self.current_running_sprite_shield = 0
+        self.dividor = abs(gravity) * TICKRATE # doesn't work for now
+        self.scaling = scale
 
     def load_player_body(self, player_images=[], sprite_sheet=False):
         self.sprites = []
@@ -27,7 +25,7 @@ class Animation(pygame.sprite.Sprite):
                     try:
                         sprite = pygame.image.load(image_name + ".png").convert()
                         sprite.set_colorkey((255, 255, 255))
-                        sprite = pygame.transform.scale(sprite, (TILE_SIZE/4, TILE_SIZE/2))
+                        sprite = pygame.transform.scale(sprite, (TILE_SIZE, TILE_SIZE))
                         self.sprites.append(sprite)
                         self.n_animations += 1
                     except FileNotFoundError as e:
@@ -46,109 +44,58 @@ class Animation(pygame.sprite.Sprite):
             self.sprites_flipped = {}
             for type, values in player_images.items():
                 self.n_animations = values[1]
-                self.sprites[type] = [self.n_animations, []]
+                self.sprites[type] = [self.n_animations, [], 0]
                 self.sprites_flipped[type] = [self.n_animations, []]
-                self.sprite_sheet = pygame.image.load(values[0]).convert()
-                self.sprite_width = self.sprite_sheet.get_size()[0] / self.n_animations
-                self.sprite_height = self.sprite_sheet.get_size()[1]
+                try:
+                    self.sprite_sheet = pygame.image.load(values[0]).convert()
+                except FileNotFoundError as e:
+                    print(e)
+                    continue
+                size = list(self.sprite_sheet.get_size())
+                scaling_size = (TILE_SIZE * self.scaling * self.n_animations, TILE_SIZE * self.scaling)
+                self.sprite_sheet = pygame.transform.scale(self.sprite_sheet, scaling_size)
+                self.sprite_width = TILE_SIZE * self.scaling
+                self.sprite_height = TILE_SIZE * self.scaling
                 for x in range(self.n_animations):
-                    self.sprites[type][1].append(self.get_sprite(x*self.sprite_width,0,self.sprite_width,self.sprite_height))
+                    self.sprites[type][1].append(self.get_sprite(x*self.sprite_width, 0, self.sprite_width, self.sprite_height))
                     self.sprites_flipped[type][1].append(pygame.transform.flip(self.sprites[type][1][x], True, False))
-            self.rect = self.sprites['run'][1][0].get_rect()
-            
+            self.rect = self.sprites['run'][1][0].get_rect()  
         return True
 
     def get_sprite(self, x, y, w, h):
-        sprite = pygame.Surface((w,h-20))
-        sprite.set_colorkey((0,0,0))
+        sub = 85#(self.scaling * (TILE_SIZE - 64)) / 2 # static for now
+        sprite = pygame.Surface((w,h - sub))
+        sprite.set_colorkey((0,0,0)) # turn it off to see player's rect
         sprite.blit(self.sprite_sheet, (0,0), (x, y, w, h))
         return sprite
 
-    def run(self, dt, facing_left):
+    def animate(self, dt, facing_left, type):
         dt /= 10 # normalize
-        self.current_running_sprite_run += dt
-        index = int(self.current_running_sprite_run%self.sprites['run'][0])
-        if not facing_left:
-            self.image = self.sprites['run'][1][index]
+        if type == 'jump':
+            self.sprites[type][2] += self.sprites[type][0]/ 200 #(self.dividor * dt) #static for now
         else:
-            self.image = self.sprites_flipped['run'][1][index]
-
-
-    def jump(self, dt, facing_left, gravity):
-        self.current_running_sprite_jump += self.sprites['jump'][0]/200
-        index = int(self.current_running_sprite_jump%self.sprites['jump'][0])
-        print(index)
-        try:
-            if not facing_left:
-                self.image = self.sprites['jump'][1][index]
-            else:
-                self.image = self.sprites_flipped['jump'][1][index]
-        except KeyError:
-            pass
-
-    def standing(self, dt, facing_left):
-        dt /= 10 # normalize
-        self.current_running_sprite_stand += dt
-        index = int(self.current_running_sprite_stand%self.sprites['stand'][0])
-        try:
-            if not facing_left:
-                self.image = self.sprites['stand'][1][index]
-            else:
-                self.image = self.sprites_flipped['stand'][1][index]
-        except KeyError:
-            pass
-
-    def attack(self, dt, facing_left):
-        dt /= 10 # normalize
-        self.current_running_sprite_attack += dt
-        index = int(self.current_running_sprite_attack%self.sprites['attack'][0])
-        try:
-            if not facing_left:
-                self.image = self.sprites['attack'][1][index]
-            else:
-                self.image = self.sprites_flipped['attack'][1][index]
-        except KeyError:
-            pass
-        if index+1 == self.sprites['attack'][0]:
-            self.current_running_sprite_attack = 0
-            return False
-        return True
-
-    def shield(self, dt, facing_left):
-        dt /= 10 # normalize
-        self.current_running_sprite_shield += dt
-        index = int(self.current_running_sprite_shield%self.sprites['shield'][0])
-        try:
-            if not facing_left:
-                self.image = self.sprites['shield'][1][index]
-            else:
-                self.image = self.sprites_flipped['shield'][1][index]
-        except KeyError:
-            pass
-        if index+1 == self.sprites['shield'][0]:
-            self.current_running_sprite_shield = 0
-            return False
-        return True
-
-    def animate(self, dt, facing_left, type): # add linked iterator in dictionary to every type of animation 
-        dt /= 10 # normalize
-        self.current_running_sprite_shield += dt
-        index = int(self.current_running_sprite_shield%self.sprites[type][0])
+            try:
+                self.sprites[type][2] += dt
+            except Exception as e:
+                print(f"Animation {type} not found")
+                return
+        index = int(self.sprites[type][2]%self.sprites[type][0])
         try:
             if not facing_left:
                 self.image = self.sprites[type][1][index]
             else:
                 self.image = self.sprites_flipped[type][1][index]
-        except KeyError:
-            pass
-        if index+1 == self.sprites[type][0]:
-            self.current_running_sprite_shield = 0
-            return False
+            if index+1 == self.sprites[type][0]:
+                self.sprites[type][2] = 0
+                return False
+        except Exception as e:
+            print(f"Animation {type} not found")
+            return
         return True
 
 
 class Player():
-    def __init__(self, gravity=5, max_jumps=1, starting_position=[WINDOW_WIDTH//2,0], acceleration=[0.2,0], max_velocity=5, player_images=animations):
+    def __init__(self, gravity=5, max_jumps=1, starting_position=[WINDOW_WIDTH//2,0], acceleration=[1,0], max_velocity=5, player_images=animations_wizard):
         self.base_acceleration = acceleration
         self.max_velocity = abs(max_velocity)
         self.gravity = gravity
@@ -168,9 +115,13 @@ class Player():
         self.on_ground = False
         self.attacking = False
         self.shielding = False
+        self.rolling = False
+        self.particle_effect = False
+        self.p = Particles()
+        self.color = (41,7,47)
 
     def initialize_animation(self, player_images):
-        self.a = Animation()
+        self.a = Animation(self.gravity)
         if self.a.load_player_body(player_images, type(player_images) is dict):
             self.animate = True
         else:
@@ -198,9 +149,15 @@ class Player():
 
     def attack(self):
         self.attacking = True
+        if not self.particle_effect:
+            self.p.load_particles(100,position=(self.rect.x + self.rect.w/2 + 20, self.rect.y + 80), color=self.color, velocity=(sign(int(self.facing_left)-1) * -2,2))
+        self.particle_effect = True
     
     def shield(self):
         self.shielding = True
+
+    def roll(self):
+        self.rolling = True
 
     def move(self, dt):
         dt *= 100 # normalize
@@ -269,16 +226,24 @@ class Player():
             self.on_ground = False
 
     def animation(self, screen):
+        self.particle_effect = self.p.splash(self.dt, screen)
         if self.moving_right or self.moving_left:
-            self.a.run(self.dt, self.facing_left)
+            type = 'run'
         if self.jump:
-            self.a.jump(self.dt, self.facing_left, self.gravity)
+            type = 'jump'
         elif not self.moving_right and not self.moving_left:
-            self.a.standing(self.dt, self.facing_left) 
-        if self.attacking:
-            self.attacking = self.a.attack(self.dt, self.facing_left)
+            type = 'stand'
+        if self.rolling:
+            type = 'roll'
+            self.rolling = self.a.animate(self.dt, self.facing_left, type)
+        elif self.attacking:
+            type = 'attack'
+            self.attacking = self.a.animate(self.dt, self.facing_left, type)
         elif self.shielding:
-            self.shielding = self.a.shield(self.dt, self.facing_left)
+            type = 'shield'
+            self.shielding = self.a.animate(self.dt, self.facing_left, type)
+        else:
+            self.a.animate(self.dt, self.facing_left, type)
         self.sprite_group.draw(screen)
 
     def render(self, screen):
