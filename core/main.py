@@ -21,6 +21,7 @@ class Game():
         self.level = Level()
         self.player = Player()
         self.camera = Camera(self.screen)
+        self.fps_counter = Fps_counter(self.screen)
         self.launch_the_game()
 
     # pin update functions to run in each iteration here
@@ -32,12 +33,14 @@ class Game():
     def loop(self):
         previous_time = time.time()
         while True:
-            render(self.screen, self.player, self.level, self.camera)
+            render(self.screen, self.player, self.level, self.camera, self.fps_counter)
             delta_time = time.time() - previous_time
             previous_time = time.time()
             self.update(delta_time)
             handle_events(self)
             pygame.display.update()
+            if FPS_COUNTER:
+                self.fps_counter.clock.tick(TICKRATE)
 
     def launch_the_game(self):
         if not DEV:
@@ -50,7 +53,7 @@ class Game():
         self.player = Player()
         self.camera = Camera(self.screen)
         if not DEV:
-            fade_in_transition(self.screen, lambda: render(self.screen, self.player, self.level, self.camera))
+            fade_in_transition(self.screen, lambda: render(self.screen, self.player, self.level, self.camera, self.fps_counter))
         self.loop()
 
 
