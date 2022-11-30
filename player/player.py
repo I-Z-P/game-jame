@@ -99,7 +99,7 @@ class Player():
         self.position = Vector2(x, y)
         self.shift = Vector2(0, 0)
         self.jump = Vector2(0, 0)
-        self.gravity = 18
+        self.gravity = 10
         self.color = color
         self.rect = pygame.Rect(x, y, TILE_SIZE, TILE_SIZE)
         self.go_left = False
@@ -112,10 +112,12 @@ class Player():
         self.position.y = int(self.position.y)
         # left / right section
         if self.go_left:
+            self.go_left = False
             self.test_collisions(pygame.Rect(self.position.x - 1, self.position.y, TILE_SIZE, TILE_SIZE), level.hard_tiles)
             if not self.collisions['left']:
                 self.shift += Vector2(-10, 0)
         if self.go_right:
+            self.go_right = False
             self.test_collisions(pygame.Rect(self.position.x + 1, self.position.y, TILE_SIZE, TILE_SIZE), level.hard_tiles)
             if not self.collisions['right']:
                 self.shift += Vector2(10, 0)
