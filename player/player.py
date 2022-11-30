@@ -3,6 +3,7 @@
 import sys
 sys.path.append('../')
 from core.config import *
+from core.render import debug_msg
 import pygame
 from pygame.math import Vector2
 from pygame.locals import *
@@ -95,36 +96,39 @@ class Animation(pygame.sprite.Sprite):
 
 
 class Player():
-    def __init__(self, x=0, y=0, color=(0,0,0)):
-        self.position = Vector2(x, y)
+    def __init__(self, pos=[0,0]):
+        self.position = Vector2(pos)
         self.shift = Vector2(0, 0)
         self.jump = Vector2(0, 0)
-        self.gravity = 10
-        self.color = color
-        self.rect = pygame.Rect(x, y, TILE_SIZE, TILE_SIZE)
+        self.gravity = 15
+        self.velocity = 7
+        self.color = (0,0,0)
+        self.rect = pygame.Rect(self.position.x, self.position.y, TILE_SIZE, TILE_SIZE)
         self.go_left = False
         self.go_right = False
         self.go_up = False
         self.collisions = {'left' : False, 'right' : False, 'top' : False, 'bottom' : False}
 
     def move(self, dt, level):
-        self.shift = Vector2(0, self.gravity)
+        dt *= 100 # normalize
+        print(dt)
+        self.shift = Vector2(0, self.gravity)*dt
         self.position.y = int(self.position.y)
         # left / right section
         if self.go_left:
             self.go_left = False
             self.test_collisions(pygame.Rect(self.position.x - 1, self.position.y, TILE_SIZE, TILE_SIZE), level.hard_tiles)
             if not self.collisions['left']:
-                self.shift += Vector2(-10, 0)
+                self.shift += Vector2(-self.velocity, 0)*dt
         if self.go_right:
             self.go_right = False
             self.test_collisions(pygame.Rect(self.position.x + 1, self.position.y, TILE_SIZE, TILE_SIZE), level.hard_tiles)
             if not self.collisions['right']:
-                self.shift += Vector2(10, 0)
+                self.shift += Vector2(self.velocity, 0)*dt
         # gravity section
         self.test_collisions(pygame.Rect(self.position.x, self.position.y + self.gravity, TILE_SIZE, TILE_SIZE), level.hard_tiles)
         if self.collisions['bottom']: 
-            self.shift -= Vector2(0, self.gravity)
+            self.shift -= Vector2(0, self.gravity)*dt
             if self.position.y % TILE_SIZE > 0:
                 self.position.y += TILE_SIZE - (self.position.y % TILE_SIZE)
         # jump section

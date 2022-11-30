@@ -9,7 +9,7 @@ WINDOW_WIDTH = 1200
 WINDOW_HEIGHT = 720
 
 # game core settings
-TICKRATE = 200
+TICKRATE = 100 # should be set to 1000+ to avoid lags
 TILE_SIZE = 128
 
 # debugging and console logging
