@@ -111,20 +111,24 @@ class Player():
 
     def move(self, dt, level):
         dt *= 100 # normalize
-        print(dt)
         self.shift = Vector2(0, self.gravity)*dt
         self.position.y = int(self.position.y)
         # left / right section
         if self.go_left:
             self.go_left = False
-            self.test_collisions(pygame.Rect(self.position.x - 1, self.position.y, TILE_SIZE, TILE_SIZE), level.hard_tiles)
+            self.test_collisions(pygame.Rect(self.position.x - self.velocity, self.position.y, TILE_SIZE, TILE_SIZE), level.hard_tiles)
             if not self.collisions['left']:
                 self.shift += Vector2(-self.velocity, 0)*dt
+            else:
+                self.position.x -= self.position.x % TILE_SIZE
         if self.go_right:
             self.go_right = False
-            self.test_collisions(pygame.Rect(self.position.x + 1, self.position.y, TILE_SIZE, TILE_SIZE), level.hard_tiles)
+            self.test_collisions(pygame.Rect(self.position.x + self.velocity, self.position.y, TILE_SIZE, TILE_SIZE), level.hard_tiles)
             if not self.collisions['right']:
                 self.shift += Vector2(self.velocity, 0)*dt
+            else:
+                if self.position.x % TILE_SIZE:
+                    self.position.x += TILE_SIZE - (self.position.x % TILE_SIZE)
         # gravity section
         self.test_collisions(pygame.Rect(self.position.x, self.position.y + self.gravity, TILE_SIZE, TILE_SIZE), level.hard_tiles)
         if self.collisions['bottom']: 
