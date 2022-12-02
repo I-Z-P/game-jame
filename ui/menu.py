@@ -71,7 +71,7 @@ class Menu():
     def start(self):
         if DEV: print('Start button clicked')
         self.open = False
-        fade_out_transition(self.screen)
+        fade_out_transition(self.screen, lambda: self.render())
         self.game.new_game()
 
     def settings(self):
@@ -80,7 +80,7 @@ class Menu():
     def exit_game(self):
         if DEV: print('Exit button clicked')
         self.open = False
-        fade_out_transition(self.screen)
+        fade_out_transition(self.screen, lambda: self.render())
         pygame.quit()
         sys.exit()
 
