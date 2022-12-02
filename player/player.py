@@ -107,6 +107,7 @@ class Player():
         self.go_left = False
         self.go_right = False
         self.go_up = False
+        self.on_gorund = False
         self.collisions = {'left' : False, 'right' : False, 'top' : False, 'bottom' : False}
 
     def move(self, dt, level):
@@ -132,6 +133,7 @@ class Player():
         # gravity section
         self.test_collisions(pygame.Rect(self.position.x, self.position.y + self.gravity, TILE_SIZE, TILE_SIZE), level.hard_tiles)
         if self.collisions['bottom']: 
+            self.on_gorund = True
             self.shift -= Vector2(0, self.gravity)*dt
             if self.position.y % TILE_SIZE > 0:
                 self.position.y += TILE_SIZE - (self.position.y % TILE_SIZE)
@@ -145,13 +147,11 @@ class Player():
         if self.jump.y > self.gravity or self.collisions['top']:
             self.jump = Vector2(0, 0)
         else: 
+            self.on_gorund = False
             self.jump *= 0.9
             self.shift += self.jump
         # new position
         self.position += self.shift
-        # self.position.x += ((WINDOW_WIDTH / 2) - self.position.x)
-        # print(self.shift)
-        # print(self.position.x)
         self.rect = pygame.Rect(self.position.x, self.position.y, TILE_SIZE, TILE_SIZE)
 
     def test_collisions(self, hit_box, tiles):
