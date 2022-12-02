@@ -10,11 +10,11 @@ WINDOW_HEIGHT = 720
 
 # game core settings
 TICKRATE = 1000 # should be set to 1000+ to avoid lags
-TILE_SIZE = 128
+TILE_SIZE = 32
 
 # debugging and console logging
 DEV = True
-FPS_COUNTER = True
+FPS_COUNTER = False
 if not DEV:
     import os
     os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
