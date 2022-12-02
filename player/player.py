@@ -3,21 +3,20 @@
 import sys
 sys.path.append('../')
 from core.config import *
+from core.render import debug_msg
 import pygame
 from pygame.math import Vector2
 from pygame.locals import *
 from numpy import sign
+from particles.particles import Particles 
 
 
 class Animation(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, gravity, scale=2):
         super().__init__()
         self.n_animations = 0
-        self.current_running_sprite_attack = 0
-        self.current_running_sprite_run = 0
-        self.current_running_sprite_jump = 0
-        self.current_running_sprite_stand = 0
-        self.current_running_sprite_shield = 0
+        self.dividor = abs(gravity) * TICKRATE # doesn't work for now
+        self.scaling = scale
 
     def load_player_body(self, player_images=[], sprite_sheet=False):
         self.sprites = []
@@ -27,7 +26,7 @@ class Animation(pygame.sprite.Sprite):
                     try:
                         sprite = pygame.image.load(image_name + ".png").convert()
                         sprite.set_colorkey((255, 255, 255))
-                        sprite = pygame.transform.scale(sprite, (TILE_SIZE/4, TILE_SIZE/2))
+                        sprite = pygame.transform.scale(sprite, (TILE_SIZE, TILE_SIZE))
                         self.sprites.append(sprite)
                         self.n_animations += 1
                     except FileNotFoundError as e:
@@ -46,247 +45,134 @@ class Animation(pygame.sprite.Sprite):
             self.sprites_flipped = {}
             for type, values in player_images.items():
                 self.n_animations = values[1]
-                self.sprites[type] = [self.n_animations, []]
+                self.sprites[type] = [self.n_animations, [], 0]
                 self.sprites_flipped[type] = [self.n_animations, []]
-                self.sprite_sheet = pygame.image.load(values[0]).convert()
-                self.sprite_width = self.sprite_sheet.get_size()[0] / self.n_animations
-                self.sprite_height = self.sprite_sheet.get_size()[1]
+                try:
+                    self.sprite_sheet = pygame.image.load(values[0]).convert()
+                except FileNotFoundError as e:
+                    print(e)
+                    continue
+                size = list(self.sprite_sheet.get_size())
+                scaling_size = (TILE_SIZE * self.scaling * self.n_animations, TILE_SIZE * self.scaling)
+                self.sprite_sheet = pygame.transform.scale(self.sprite_sheet, scaling_size)
+                self.sprite_WINDOWS_width = TILE_SIZE * self.scaling
+                self.sprite_height = TILE_SIZE * self.scaling
                 for x in range(self.n_animations):
-                    self.sprites[type][1].append(self.get_sprite(x*self.sprite_width,0,self.sprite_width,self.sprite_height))
+                    self.sprites[type][1].append(self.get_sprite(x*self.sprite_WINDOWS_width, 0, self.sprite_WINDOWS_width, self.sprite_height))
                     self.sprites_flipped[type][1].append(pygame.transform.flip(self.sprites[type][1][x], True, False))
-            self.rect = self.sprites['run'][1][0].get_rect()
-            
+            self.rect = self.sprites['run'][1][0].get_rect()  
         return True
 
     def get_sprite(self, x, y, w, h):
-        sprite = pygame.Surface((w,h-20))
-        sprite.set_colorkey((0,0,0))
+        sub = 85#(self.scaling * (TILE_SIZE - 64)) / 2 # static for now
+        sprite = pygame.Surface((w,h - sub))
+        sprite.set_colorkey((0,0,0)) # turn it off to see player's rect
         sprite.blit(self.sprite_sheet, (0,0), (x, y, w, h))
         return sprite
 
-    def run(self, dt, facing_left):
+    def animate(self, dt, facing_left, type):
         dt /= 10 # normalize
-        self.current_running_sprite_run += dt
-        index = int(self.current_running_sprite_run%self.sprites['run'][0])
-        if not facing_left:
-            self.image = self.sprites['run'][1][index]
+        if type == 'jump':
+            self.sprites[type][2] += self.sprites[type][0]/ 200 #(self.dividor * dt) #static for now
         else:
-            self.image = self.sprites_flipped['run'][1][index]
-
-
-    def jump(self, dt, facing_left, gravity):
-        self.current_running_sprite_jump += self.sprites['jump'][0]/200
-        index = int(self.current_running_sprite_jump%self.sprites['jump'][0])
-        print(index)
-        try:
-            if not facing_left:
-                self.image = self.sprites['jump'][1][index]
-            else:
-                self.image = self.sprites_flipped['jump'][1][index]
-        except KeyError:
-            pass
-
-    def standing(self, dt, facing_left):
-        dt /= 10 # normalize
-        self.current_running_sprite_stand += dt
-        index = int(self.current_running_sprite_stand%self.sprites['stand'][0])
-        try:
-            if not facing_left:
-                self.image = self.sprites['stand'][1][index]
-            else:
-                self.image = self.sprites_flipped['stand'][1][index]
-        except KeyError:
-            pass
-
-    def attack(self, dt, facing_left):
-        dt /= 10 # normalize
-        self.current_running_sprite_attack += dt
-        index = int(self.current_running_sprite_attack%self.sprites['attack'][0])
-        try:
-            if not facing_left:
-                self.image = self.sprites['attack'][1][index]
-            else:
-                self.image = self.sprites_flipped['attack'][1][index]
-        except KeyError:
-            pass
-        if index+1 == self.sprites['attack'][0]:
-            self.current_running_sprite_attack = 0
-            return False
-        return True
-
-    def shield(self, dt, facing_left):
-        dt /= 10 # normalize
-        self.current_running_sprite_shield += dt
-        index = int(self.current_running_sprite_shield%self.sprites['shield'][0])
-        try:
-            if not facing_left:
-                self.image = self.sprites['shield'][1][index]
-            else:
-                self.image = self.sprites_flipped['shield'][1][index]
-        except KeyError:
-            pass
-        if index+1 == self.sprites['shield'][0]:
-            self.current_running_sprite_shield = 0
-            return False
-        return True
-
-    def animate(self, dt, facing_left, type): # add linked iterator in dictionary to every type of animation 
-        dt /= 10 # normalize
-        self.current_running_sprite_shield += dt
-        index = int(self.current_running_sprite_shield%self.sprites[type][0])
+            try:
+                self.sprites[type][2] += dt
+            except Exception as e:
+                print(f"Animation {type} not found")
+                return
+        index = int(self.sprites[type][2]%self.sprites[type][0])
         try:
             if not facing_left:
                 self.image = self.sprites[type][1][index]
             else:
                 self.image = self.sprites_flipped[type][1][index]
-        except KeyError:
-            pass
-        if index+1 == self.sprites[type][0]:
-            self.current_running_sprite_shield = 0
-            return False
+            if index+1 == self.sprites[type][0]:
+                self.sprites[type][2] = 0
+                return False
+        except Exception as e:
+            print(f"Animation {type} not found")
+            return
         return True
 
 
 class Player():
-    def __init__(self, gravity=5, max_jumps=1, starting_position=[WINDOW_WIDTH//2,0], acceleration=[0.2,0], max_velocity=5, player_images=animations):
-        self.base_acceleration = acceleration
-        self.max_velocity = abs(max_velocity)
-        self.gravity = gravity
-        self.vertical_momentum = 0
-        self.max_jumps = max_jumps
-        self.jumps = 0 # jumps counter
-        self.position = Vector2(starting_position) # player's position
-        self.shift = Vector2(0,0)
-        self.velocity = Vector2([0,0]) # player's velocity
-        self.acceleration = Vector2(self.base_acceleration) # player's acceleration
-        self.dt = 0
-        self.initialize_animation(player_images)
-        self.moving_right = False
-        self.moving_left = False
-        self.jump = False
-        self.pressing = False
-        self.on_ground = False
-        self.attacking = False
-        self.shielding = False
-
-    def initialize_animation(self, player_images):
-        self.a = Animation()
-        if self.a.load_player_body(player_images, type(player_images) is dict):
-            self.animate = True
-        else:
-            self.animate = False
-        self.rect = self.a.rect
-        self.sprite_group = pygame.sprite.Group()
-        self.sprite_group.add(self.a)
-        self.facing_left = False
-
-    def collide(self, tiles):
-        collisions = []
-        for tile in tiles:
-            if self.rect.colliderect(tile):
-                collisions.append(tile)
-        return collisions
-
-    def move_left(self):
-        self.moving_left = True
-
-    def move_right(self):
-        self.moving_right = True
-
-    def move_up(self):
-        self.jump = True
-
-    def attack(self):
-        self.attacking = True
-    
-    def shield(self):
-        self.shielding = True
-
-    def move(self, dt):
-        dt *= 100 # normalize
-        self.dt = dt
+    def __init__(self, pos=[0,0]):
+        self.position = Vector2(pos)
         self.shift = Vector2(0, 0)
-        if abs(self.velocity.x) <= self.max_velocity: # if boundry of max velocity is not crossed
-            if self.acceleration.x == 0: self.acceleration.x = self.base_acceleration[0] # if acceleration is turned off then turn it on
-            if self.moving_right:
-                self.facing_left = False
-                self.velocity.x += self.acceleration.x * dt
-            if self.moving_left:
-                self.facing_left = True
-                self.velocity.x -= self.acceleration.x * dt
-            if self.moving_left and self.moving_right or not self.moving_left and not self.moving_right:
-                if abs(self.velocity.x) < abs(self.acceleration.x): self.velocity.x = 0
-                else:
-                    self.velocity.x += -sign(self.velocity.x) * self.acceleration.x/10
-        else:
-            self.acceleration.x = 0
-            self.velocity.x = sign(self.velocity.x) * self.max_velocity
-        self.shift.x += self.velocity.x * dt
-        self.position.x += self.shift.x
-        if self.jump:
-            if self.jumps < self.max_jumps and not self.pressing:
-                self.vertical_momentum = -self.gravity
-                self.jumps += 1
-                self.pressing = True # initialize space pressing
-        else:
-            self.pressing = False # user stopped pressing space
-        if not self.on_ground:
-            self.vertical_momentum += self.gravity/100
-            if self.vertical_momentum > self.gravity:
-                self.vertical_momentum = self.gravity
-        else:
-            self.shift.y += 1
-        self.shift.y += self.vertical_momentum * dt
-        self.position.y += self.shift.y
+        self.jump = Vector2(0, 0)
+        self.gravity = 15
+        self.velocity = 7
+        self.color = (0,0,0)
+        self.rect = pygame.Rect(self.position.x, self.position.y, TILE_SIZE, TILE_SIZE)
+        self.go_left = False
+        self.go_right = False
+        self.go_up = False
+        self.collisions = {'left' : False, 'right' : False, 'top' : False, 'bottom' : False}
 
-    def check_collisions(self, dt, tiles):
-        self.rect.x = self.position.x
-        collisions = self.collide(tiles)
-        for tile in collisions:
-            self.acceleration.x = 0
-            if self.moving_right:
-                self.position.x = tile.rect.x - TILE_SIZE
-                self.rect.x = self.position.x
-            elif self.moving_left:
-                self.position.x = tile.rect.x + TILE_SIZE
-                self.rect.x = self.position.x
-        self.rect.y = self.position.y
-        collisions = self.collide(tiles)
-        if collisions:
-            for tile in collisions:
-                if self.vertical_momentum < 0:
-                    self.position.y += (self.position.y % TILE_SIZE)
-                    self.rect.y = self.position.y
-                    self.vertical_momentum = 0
-                else:
-                    self.position.y = tile.rect.top - self.rect.h
-                    self.rect.y = self.position.y
-                    self.jumps = 0
-                    self.jump = False
-                    self.vertical_momentum = 0
-                    self.on_ground = True
-        else:
-            self.on_ground = False
+    def move(self, dt, level):
+        dt *= 100 # normalize
+        self.shift = Vector2(0, self.gravity)*dt
+        self.position.y = int(self.position.y)
+        # left / right section
+        if self.go_left:
+            self.go_left = False
+            self.test_collisions(pygame.Rect(self.position.x - self.velocity, self.position.y, TILE_SIZE, TILE_SIZE), level.hard_tiles)
+            if not self.collisions['left']:
+                self.shift += Vector2(-self.velocity, 0)*dt
+            else:
+                self.position.x -= self.position.x % TILE_SIZE
+        if self.go_right:
+            self.go_right = False
+            self.test_collisions(pygame.Rect(self.position.x + self.velocity, self.position.y, TILE_SIZE, TILE_SIZE), level.hard_tiles)
+            if not self.collisions['right']:
+                self.shift += Vector2(self.velocity, 0)*dt
+            else:
+                if self.position.x % TILE_SIZE:
+                    self.position.x += TILE_SIZE - (self.position.x % TILE_SIZE)
+        # gravity section
+        self.test_collisions(pygame.Rect(self.position.x, self.position.y + self.gravity, TILE_SIZE, TILE_SIZE), level.hard_tiles)
+        if self.collisions['bottom']: 
+            self.shift -= Vector2(0, self.gravity)*dt
+            if self.position.y % TILE_SIZE > 0:
+                self.position.y += TILE_SIZE - (self.position.y % TILE_SIZE)
+        # jump section
+        if self.go_up:
+            self.go_up = False
+            self.test_collisions(pygame.Rect(self.position.x, self.position.y + self.gravity, TILE_SIZE, TILE_SIZE), level.hard_tiles)
+            if self.collisions['bottom']:
+                self.jump = Vector2(0, -80)
+        self.test_collisions(pygame.Rect(self.position.x, self.position.y - 1, TILE_SIZE, TILE_SIZE), level.hard_tiles)
+        if self.jump.y > self.gravity or self.collisions['top']:
+            self.jump = Vector2(0, 0)
+        else: 
+            self.jump *= 0.9
+            self.shift += self.jump
+        # new position
+        self.position += self.shift
+        # self.position.x += ((WINDOW_WIDTH / 2) - self.position.x)
+        # print(self.shift)
+        # print(self.position.x)
+        self.rect = pygame.Rect(self.position.x, self.position.y, TILE_SIZE, TILE_SIZE)
 
-    def animation(self, screen):
-        if self.moving_right or self.moving_left:
-            self.a.run(self.dt, self.facing_left)
-        if self.jump:
-            self.a.jump(self.dt, self.facing_left, self.gravity)
-        elif not self.moving_right and not self.moving_left:
-            self.a.standing(self.dt, self.facing_left) 
-        if self.attacking:
-            self.attacking = self.a.attack(self.dt, self.facing_left)
-        elif self.shielding:
-            self.shielding = self.a.shield(self.dt, self.facing_left)
-        self.sprite_group.draw(screen)
+    def test_collisions(self, hit_box, tiles):
+        self.collisions = {'left' : False, 'right' : False, 'top' : False, 'bottom' : False}
+        for tile in tiles:
+            if hit_box.colliderect(tile.rect):
+                if hit_box.x <= tile.rect.x:
+                    self.collisions['right'] = True
+                if hit_box.x >= tile.rect.x:
+                    self.collisions['left'] = True
+                if hit_box.y >= tile.rect.y:
+                    self.collisions['top'] = True
+                if hit_box.y <= tile.rect.y:
+                    self.collisions['bottom'] = True
+
+    def check_death(self):
+        if self.position.y > WINDOW_HEIGHT:
+            new_game()
 
     def render(self, screen):
-        if self.animate:
-            self.animation(screen)
-        else:
-            pygame.draw.rect(screen, (255,0,0), self.rect)
+        pygame.draw.rect(screen, self.color, self.rect)
 
-    def update(self, dt, tiles=[]):
-        self.move(dt)
-        self.check_collisions(dt, tiles)
+    def update(self, game, dt):
+        self.move(dt, game.level)

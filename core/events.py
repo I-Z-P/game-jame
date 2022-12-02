@@ -8,34 +8,39 @@ sys.path.append('../')
 from ui.menu import In_game_menu
 
 
-def keyboard_assignments(event, screen, player, game):
-    if DEV: print('Pressed key in ascii:', event.key) 
-    pressed_keys = pygame.key.get_pressed()
+def keyboard_assignments(pressed_keys, game):
     if pressed_keys[pygame.K_ESCAPE]:
         in_game_menu = In_game_menu(game.screen, game)
         in_game_menu.loop()
     if pressed_keys[pygame.K_LEFT]:
-        player.move_left()
+        game.player.go_left = True
     if pressed_keys[pygame.K_RIGHT]:
-        player.move_right()
+        game.player.go_right = True
     if pressed_keys[pygame.K_UP]:
-        player.move_up()
+        game.player.go_up = True
+    if pressed_keys[pygame.K_DOWN]:
+        game.player.roll()
     if pressed_keys[pygame.K_SPACE]:
-        player.attack()
+        game.player.attack()
     if pressed_keys[pygame.K_s]:
-        player.shield()
+        game.player.shield()
+
 
 def handle_events(game):
-    screen = game.screen
-    player = game.player
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            if DEV: print('Closing')
             pygame.quit()
+            sys.exit()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            pressed_buttons = pygame.mouse.get_pressed()
+            if DEV: print('Mouse clicked:', pressed_buttons)
+            if pressed_buttons[0]:  # left mouse button
+                game.player.attack()
+            if pressed_buttons[2]:  # right mouse button
+                game.player.shield()
         if event.type == pygame.KEYDOWN:
-            keyboard_assignments(event, screen, player, game)
-        # temporarly added in order to fix player movement
-        elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_RIGHT:
-                player.moving_right = False
-            elif event.key == pygame.K_LEFT:
-                player.moving_left = False
+            if DEV: print('Pressed key:', pygame.key.name(event.key))
+    pressed_keys = pygame.key.get_pressed()
+    if pressed_keys:
+        keyboard_assignments(pressed_keys, game)
