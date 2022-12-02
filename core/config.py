@@ -21,7 +21,8 @@ if not DEV:
 
 # player animations
 animations_knight = {"run":["../assets/Knight/run.png",7],
-                     "jump":["../assets/Knight/skakanie.png",8]}
+                     "jump":["../assets/Knight/skakanie.png",8],
+                     "stand":["../assets/Knight/idle.png",4]}
 
 animations_wizard = {"run":["../assets/Wizard/Run.png",8],
                      "stand": ["../assets/Wizard/Idle.png", 8],
