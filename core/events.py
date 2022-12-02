@@ -21,11 +21,13 @@ def keyboard_assignments(pressed_keys, game):
     if pressed_keys[pygame.K_UP]:
         game.player.go_up = True
     if pressed_keys[pygame.K_DOWN]:
-        game.player.roll()
+        # game.player.roll()
+        pass
     if pressed_keys[pygame.K_SPACE]:
-        game.player.attack()
+        game.player.attacking = True
     if pressed_keys[pygame.K_s]:
-        game.player.shield()
+        # game.player.shield()
+        pass
 
 
 def handle_events(game):

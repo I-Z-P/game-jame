@@ -8,95 +8,14 @@ import pygame
 from pygame.math import Vector2
 from pygame.locals import *
 from numpy import sign
-from particles.particles import Particles 
-
-
-class Animation(pygame.sprite.Sprite):
-    def __init__(self, gravity, scale=2):
-        super().__init__()
-        self.n_animations = 0
-        self.dividor = abs(gravity) * TICKRATE # doesn't work for now
-        self.scaling = scale
-
-    def load_player_body(self, player_images=[], sprite_sheet=False):
-        self.sprites = []
-        if not sprite_sheet:
-            if player_images:
-                for image_name in player_images:
-                    try:
-                        sprite = pygame.image.load(image_name + ".png").convert()
-                        sprite.set_colorkey((255, 255, 255))
-                        sprite = pygame.transform.scale(sprite, (TILE_SIZE, TILE_SIZE))
-                        self.sprites.append(sprite)
-                        self.n_animations += 1
-                    except FileNotFoundError as e:
-                        print(e) # inform which file does not exist
-            if self.sprites:
-                self.rect = self.sprites[0].get_rect()
-                self.sprites_flipped = [pygame.transform.flip(sprite, True, False) for sprite in self.sprites]
-                self.current_running_sprite = 0
-                self.image = self.sprites[self.current_running_sprite]
-            else:
-                self.rect = pygame.Rect(0,0,TILE_SIZE,TILE_SIZE)
-                return False
-
-        elif sprite_sheet:
-            self.sprites = {}
-            self.sprites_flipped = {}
-            for type, values in player_images.items():
-                self.n_animations = values[1]
-                self.sprites[type] = [self.n_animations, [], 0]
-                self.sprites_flipped[type] = [self.n_animations, []]
-                try:
-                    self.sprite_sheet = pygame.image.load(values[0]).convert()
-                except FileNotFoundError as e:
-                    print(e)
-                    continue
-                size = list(self.sprite_sheet.get_size())
-                scaling_size = (TILE_SIZE * self.scaling * self.n_animations, TILE_SIZE * self.scaling)
-                self.sprite_sheet = pygame.transform.scale(self.sprite_sheet, scaling_size)
-                self.sprite_WINDOWS_width = TILE_SIZE * self.scaling
-                self.sprite_height = TILE_SIZE * self.scaling
-                for x in range(self.n_animations):
-                    self.sprites[type][1].append(self.get_sprite(x*self.sprite_WINDOWS_width, 0, self.sprite_WINDOWS_width, self.sprite_height))
-                    self.sprites_flipped[type][1].append(pygame.transform.flip(self.sprites[type][1][x], True, False))
-            self.rect = self.sprites['run'][1][0].get_rect()  
-        return True
-
-    def get_sprite(self, x, y, w, h):
-        sub = 85#(self.scaling * (TILE_SIZE - 64)) / 2 # static for now
-        sprite = pygame.Surface((w,h - sub))
-        sprite.set_colorkey((0,0,0)) # turn it off to see player's rect
-        sprite.blit(self.sprite_sheet, (0,0), (x, y, w, h))
-        return sprite
-
-    def animate(self, dt, facing_left, type):
-        dt /= 10 # normalize
-        if type == 'jump':
-            self.sprites[type][2] += self.sprites[type][0]/ 200 #(self.dividor * dt) #static for now
-        else:
-            try:
-                self.sprites[type][2] += dt
-            except Exception as e:
-                print(f"Animation {type} not found")
-                return
-        index = int(self.sprites[type][2]%self.sprites[type][0])
-        try:
-            if not facing_left:
-                self.image = self.sprites[type][1][index]
-            else:
-                self.image = self.sprites_flipped[type][1][index]
-            if index+1 == self.sprites[type][0]:
-                self.sprites[type][2] = 0
-                return False
-        except Exception as e:
-            print(f"Animation {type} not found")
-            return
-        return True
+from particles.particles import Particles, Sparks
+from misc.stone import Stone
+from misc.animation import Animation
+from random import randint
 
 
 class Player():
-    def __init__(self, pos=[0,0]):
+    def __init__(self, pos=[0,0], player_images=animations_knight):
         self.position = Vector2(pos)
         self.shift = Vector2(0, 0)
         self.jump = Vector2(0, 0)
@@ -108,21 +27,44 @@ class Player():
         self.go_right = False
         self.go_up = False
         self.collisions = {'left' : False, 'right' : False, 'top' : False, 'bottom' : False}
+        self.initialize_animation(player_images)
+        self.attacking = False
+        self.dt = 0
+
+        #self.stone = Stone("#a7180c")
+
+    def initialize_animation(self, player_images):
+        self.a = Animation(self.gravity)
+        if self.a.load_player_body(player_images, type(player_images) is dict):
+            self.animate = True
+        else:
+            self.animate = False
+        self.a.rect = self.rect
+        self.sprite_group = pygame.sprite.Group()
+        self.sprite_group.add(self.a)
+        self.facing_left = False   
+
 
     def move(self, dt, level):
         dt *= 100 # normalize
+        self.dt = dt
         self.shift = Vector2(0, self.gravity)*dt
         self.position.y = int(self.position.y)
+        self.running = False
         # left / right section
         if self.go_left:
+            self.facing_left = True
             self.go_left = False
+            self.running = True
             self.test_collisions(pygame.Rect(self.position.x - self.velocity, self.position.y, TILE_SIZE, TILE_SIZE), level.hard_tiles)
             if not self.collisions['left']:
                 self.shift += Vector2(-self.velocity, 0)*dt
             else:
                 self.position.x -= self.position.x % TILE_SIZE
         if self.go_right:
+            self.facing_left = False
             self.go_right = False
+            self.running = True
             self.test_collisions(pygame.Rect(self.position.x + self.velocity, self.position.y, TILE_SIZE, TILE_SIZE), level.hard_tiles)
             if not self.collisions['right']:
                 self.shift += Vector2(self.velocity, 0)*dt
@@ -169,10 +111,31 @@ class Player():
 
     def check_death(self):
         if self.position.y > WINDOW_HEIGHT:
-            new_game()
+            pass
+
+    def animation(self, screen):
+        # self.particle_effect = self.p.splash(screen)
+        # self.sparking = self.s.fire(self.dt, screen)
+        if self.running:
+            type = 'run'
+        if self.go_up:
+            type = 'jump'
+        if not self.running:
+            type = 'stand'
+        if self.attacking:
+            type = 'attack'
+            self.attacking = self.a.animate(self.dt, self.facing_left, type)
+        elif not self.attacking:
+            self.a.animate(self.dt, self.facing_left, type)
+        #self.stone.update(screen)
+        self.a.update(self.position)
+        self.sprite_group.draw(screen)
 
     def render(self, screen):
-        pygame.draw.rect(screen, self.color, self.rect)
+        if self.animate:
+            self.animation(screen)
+        else:
+            pygame.draw.rect(screen, self.color, self.rect)
 
     def update(self, game, dt):
         self.move(dt, game.level)
