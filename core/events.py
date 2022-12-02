@@ -10,6 +10,8 @@ from ui.menu import In_game_menu
 
 def keyboard_assignments(pressed_keys, game):
     if pressed_keys[pygame.K_ESCAPE]:
+        if DEV:
+            sys.exit()
         in_game_menu = In_game_menu(game.screen, game)
         in_game_menu.loop()
     if pressed_keys[pygame.K_LEFT]:
