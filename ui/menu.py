@@ -133,7 +133,7 @@ class In_game_menu(Menu):
     def exit_menu(self):
         if DEV: print('Game resumed')
         self.open = False
-        fade_out_transition(self.screen)
+        fade_out_transition(self.screen,lambda:self.render)
 
     def main_menu(self):
         if DEV: print('Back to main menu')
