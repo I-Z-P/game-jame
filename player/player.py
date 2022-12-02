@@ -30,6 +30,7 @@ class Player():
         self.initialize_animation(player_images)
         self.attacking = False
         self.dt = 0
+        self.jumping = False
 
         #self.stone = Stone("#a7180c")
 
@@ -79,6 +80,7 @@ class Player():
                 self.position.y += TILE_SIZE - (self.position.y % TILE_SIZE)
         # jump section
         if self.go_up:
+            self.jumping = True
             self.go_up = False
             self.test_collisions(pygame.Rect(self.position.x, self.position.y + self.gravity, TILE_SIZE, TILE_SIZE), level.hard_tiles)
             if self.collisions['bottom']:
@@ -108,6 +110,7 @@ class Player():
                     self.collisions['top'] = True
                 if hit_box.y <= tile.rect.y:
                     self.collisions['bottom'] = True
+                    self.jumping = False
 
     def check_death(self):
         if self.position.y > WINDOW_HEIGHT:
@@ -118,9 +121,10 @@ class Player():
         # self.sparking = self.s.fire(self.dt, screen)
         if self.running:
             type = 'run'
-        if self.go_up:
+        if self.jumping:
             type = 'jump'
-        if not self.running:
+
+        elif not self.running:
             type = 'stand'
         if self.attacking:
             type = 'attack'

@@ -19,7 +19,6 @@ class Animation(pygame.sprite.Sprite):
         self.type = None
 
     def load_player_body(self, player_images=[], sprite_sheet=False):
-        print(player_images)
         self.sprites = []
         if not sprite_sheet:
             if player_images:
@@ -31,8 +30,8 @@ class Animation(pygame.sprite.Sprite):
                         self.sprites.append(sprite)
                         self.n_animations += 1
                     except FileNotFoundError as e:
-                        print("adfasfdkjasdflsadf")
-                        print(e) # inform which file does not exist
+                        pass
+                        #print(e) # inform which file does not exist
             if self.sprites:
                 self.rect = self.sprites[0].get_rect()
                 self.sprites_flipped = [pygame.transform.flip(sprite, True, False) for sprite in self.sprites]
@@ -80,15 +79,16 @@ class Animation(pygame.sprite.Sprite):
 
     def animate(self, dt, facing_left, type):
         # if type not in self.sprites.keys(): return False
+        # print(type)
         self.image = self.sprites[self.type][1][0]
         dt /= 10 # normalize
         if type == 'jump':
-            self.sprites[type][2] += self.sprites[type][0]/ 200 #(self.dividor * dt) #static for now
+            self.sprites[type][2] += self.sprites[type][0]/ 100 #(self.dividor * dt) #static for now
         else:
             try:
                 self.sprites[type][2] += dt
             except Exception as e:
-                print(f"Animation {type} not found")
+                #print(f"Animation {type} not found")
                 return
         index = int(self.sprites[type][2]%self.sprites[type][0])
         try:
@@ -100,7 +100,7 @@ class Animation(pygame.sprite.Sprite):
                 self.sprites[type][2] = 0
                 return False
         except Exception as e:
-            print(f"Animation {type} not found")
+            #print(f"Animation {type} not found")
             return
-        print(type, self.image)
+        # print(type, self.image)
         return True

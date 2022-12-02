@@ -20,7 +20,8 @@ if not DEV:
     os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
 # player animations
-animations_knight = {"run":["../assets/Knight/run.png",7]}
+animations_knight = {"run":["../assets/Knight/run.png",7],
+                     "jump":["../assets/Knight/skakanie.png",8]}
 
 animations_wizard = {"run":["../assets/Wizard/Run.png",8],
                      "stand": ["../assets/Wizard/Idle.png", 8],
