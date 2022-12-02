@@ -56,7 +56,6 @@ class Animation(pygame.sprite.Sprite):
                     continue
                 size = list(self.sprite_sheet.get_size())
                 scaling_size = (size[0] * self.scaling, size[1] * self.scaling)
-                print(scaling_size)
                 self.sprite_sheet = pygame.transform.scale(self.sprite_sheet, scaling_size)
                 self.sprite_WINDOWS_width = TILE_SIZE * self.scaling
                 self.sprite_height = TILE_SIZE * self.scaling
@@ -83,6 +82,8 @@ class Animation(pygame.sprite.Sprite):
         # print(type)
         self.image = self.sprites[self.type][1][0]
         dt /= 10 # normalize
+        if type == "stand":
+            dt /= 3
         if type == 'jump':
             self.sprites[type][2] += self.sprites[type][0]/ 700 #(self.dividor * dt) #static for now
         else:
