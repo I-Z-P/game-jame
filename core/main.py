@@ -32,6 +32,7 @@ class Game():
             obj.update(self, delta_time)
             if obj.type == "agressive":
                 obj.fight(self.player)
+                obj.freeze = self.player.got_hit(obj)
         self.camera.update(self.objects[1].enemy)
 
     def loop(self):
@@ -55,7 +56,7 @@ class Game():
     def new_game(self):
         self.level = Level()
         self.player = Player()
-        self.objects = [self.player, Enemy([1800,0], animations_knight)]
+        self.objects = [self.player, Enemy([1800,0], animations_golem)]
         self.camera = Camera(self.screen)
         if not DEV:
             fade_in_transition(self.screen, lambda: render(self.screen, self.player, self.level, self.camera, self.fps_counter))

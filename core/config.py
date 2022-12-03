@@ -25,6 +25,10 @@ animations_knight = {"run":["../assets/Knight/run.png",7],
                      "stand":["../assets/Knight/idle.png",4],
                      "attack": ["../assets/Knight/attack.png", 7]}
 
+animations_golem = {"run":["../assets/Golem/run.png",3],
+                    "stand":["../assets/Golem/idle.png",4],
+                    "attack": ["../assets/Golem/attack.png", 8]}
+
 animations_wizard = {"run":["../assets/Wizard/Run.png",8],
                      "stand": ["../assets/Wizard/Idle.png", 8],
                      "attack": ["../assets/Wizard/Attack1.png", 8],

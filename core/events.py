@@ -39,10 +39,10 @@ def handle_events(game):
         if event.type == pygame.MOUSEBUTTONDOWN:
             pressed_buttons = pygame.mouse.get_pressed()
             if DEV: print('Mouse clicked:', pressed_buttons)
-            if pressed_buttons[0]:  # left mouse button
-                game.player.attack()
-            if pressed_buttons[2]:  # right mouse button
-                game.player.shield()
+            # if pressed_buttons[0]:  # left mouse button
+            #     game.player.attack()
+            # if pressed_buttons[2]:  # right mouse button
+            #     game.player.shield()
         if event.type == pygame.KEYDOWN:
             if DEV: print('Pressed key:', pygame.key.name(event.key))
     pressed_keys = pygame.key.get_pressed()
