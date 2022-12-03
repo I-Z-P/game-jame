@@ -41,9 +41,10 @@ class Fps_counter():
 
 
 # pin render functions here
-def render(screen, player, level, camera, fps_counter):
+def render(screen, objects, level, camera, fps_counter):
     screen.fill((49, 113, 181)) # background color
     level.render(screen, camera)
-    player.render(screen)
+    for obj in objects:
+        obj.render(screen)
     if fps_counter.run:
         fps_counter.update()
