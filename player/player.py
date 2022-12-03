@@ -32,7 +32,7 @@ class Player():
         self.attacking = False
         self.dt = 0
         self.jumping = False
-
+        self.done = True
         #self.stone = Stone("#a7180c")
 
     def initialize_animation(self, player_images):
@@ -55,6 +55,7 @@ class Player():
         self.running = False
         # left / right section
         if self.go_left:
+            self.done = False
             self.facing_left = True
             self.go_left = False
             self.running = True
@@ -115,7 +116,9 @@ class Player():
 
     def check_death(self):
         if self.position.y > WINDOW_HEIGHT:
-            pass
+            if not self.done:
+                self.s = game.enter_cave(self.position, self.rect)
+                self.done = True
 
     def animation(self, screen):
         # self.particle_effect = self.p.splash(screen)
@@ -124,7 +127,6 @@ class Player():
             type = 'run'
         if self.jumping:
             type = 'jump'
-
         elif not self.running:
             type = 'stand'
         if self.attacking:
@@ -139,8 +141,15 @@ class Player():
     def render(self, screen):
         if self.animate:
             self.animation(screen)
+            try:
+                screen.blit(self.s, (0,0))
+            except:
+                pass
         else:
             pygame.draw.rect(screen, self.color, self.rect)
+
+    def enter_cave(self, screen):
+        self.s = game.enter_cave(self.position, self.rect)
 
     def update(self, game, dt):
         self.move(dt, game.level)

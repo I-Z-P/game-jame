@@ -34,4 +34,5 @@ animations_wizard = {"run":["../assets/Wizard/Run.png",8],
 # objects animations
 stone = {'full':["../assets/Stone/full.png",1],
          '1':["../assets/Stone/1.png",1],
-         '2':["../assets/Stone/2.png",1]}
+         '2':["../assets/Stone/2.png",1],
+         'animation': ['../assets/Stone/animation.png',12]}

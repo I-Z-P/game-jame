@@ -11,7 +11,7 @@ from random import randint
 
 
 class Animation(pygame.sprite.Sprite):
-    def __init__(self, gravity, scale=4):
+    def __init__(self, gravity, scale=3):
         super().__init__()
         self.n_animations = 0
         self.dividor = abs(gravity) * TICKRATE # doesn't work for now
@@ -78,6 +78,7 @@ class Animation(pygame.sprite.Sprite):
         self.rect.y = position[1] - TILE_SIZE * self.scaling + TILE_SIZE
 
     def animate(self, dt, facing_left, type):
+        # type = 'animation'
         # if type not in self.sprites.keys(): return False
         # print(type)
         self.image = self.sprites[self.type][1][0]
