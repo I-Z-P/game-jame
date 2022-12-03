@@ -3,6 +3,7 @@
 import sys
 sys.path.append('../')
 from player.player import Player
+from enemies.enemy import Enemy
 from level.level import Level
 from level.camera import Camera
 from ui.menu import Menu
@@ -27,8 +28,9 @@ class Game():
     # pin update functions to run in each iteration here
     def update(self, delta_time):
         # debug_msg(delta_time)
-        self.player.update(self, delta_time)
-        self.camera.update(self.player)
+        for obj in self.objects:
+            obj.update(self, delta_time)
+        self.camera.update(self.objects[1].enemy)
 
     def loop(self):
         previous_time = time.time()
@@ -36,7 +38,7 @@ class Game():
             delta_time = time.time() - previous_time
             previous_time = time.time()
             self.update(delta_time)
-            render(self.screen, self.player, self.level, self.camera, self.fps_counter)
+            render(self.screen, self.objects, self.level, self.camera, self.fps_counter)
             pygame.display.update()
             handle_events(self)
             if FPS_COUNTER:
@@ -51,6 +53,7 @@ class Game():
     def new_game(self):
         self.level = Level()
         self.player = Player()
+        self.objects = [self.player, Enemy([0,0], animations_knight)]
         self.camera = Camera(self.screen)
         if not DEV:
             fade_in_transition(self.screen, lambda: render(self.screen, self.player, self.level, self.camera, self.fps_counter))

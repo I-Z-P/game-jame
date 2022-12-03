@@ -44,7 +44,7 @@ class Player():
         self.a.rect = self.rect
         self.sprite_group = pygame.sprite.Group()
         self.sprite_group.add(self.a)
-        self.facing_left = False   
+        self.facing_left = False
 
 
     def move(self, dt, level):
