@@ -5,8 +5,8 @@ import os
 ROOT_PATH = os.path.abspath('../')
 
 # app window
-WINDOW_WIDTH = 1200
-WINDOW_HEIGHT = 720
+WINDOW_WIDTH = 1920
+WINDOW_HEIGHT = 1080
 
 # game core settings
 TICKRATE = 1000 # should be set to 1000+ to avoid lags
