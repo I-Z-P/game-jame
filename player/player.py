@@ -18,8 +18,11 @@ class Player():
     def __init__(self, pos=[0,0], player_images=animations_knight):
         self.position = Vector2(pos)
         self.shift = Vector2(0, 0)
-        self.jump = Vector2(0, 0)
-        self.gravity = 15
+        self.jump_velocity = 10
+        self.gravity = 10
+        self.max_jump = 200
+        self.jump_count = 0
+        self.jump_height = 0
         self.velocity = 7
         self.color = (0,0,0)
         self.rect = pygame.Rect(self.position.x, self.position.y, TILE_SIZE, TILE_SIZE)
@@ -27,11 +30,12 @@ class Player():
         self.go_right = False
         self.go_up = False
         self.on_gorund = False
+        self.jumping = False
+        self.falling = True
         self.collisions = {'left' : False, 'right' : False, 'top' : False, 'bottom' : False}
         self.initialize_animation(player_images)
         self.attacking = False
         self.dt = 0
-        self.jumping = False
 
         #self.stone = Stone("#a7180c")
 
@@ -50,8 +54,7 @@ class Player():
     def move(self, dt, level):
         dt *= 100 # normalize
         self.dt = dt
-        self.shift = Vector2(0, self.gravity)*dt
-        self.position.y = int(self.position.y)
+        self.shift = Vector2(0, 0)
         self.running = False
         # left / right section
         if self.go_left:
@@ -73,31 +76,42 @@ class Player():
             else:
                 if self.position.x % TILE_SIZE:
                     self.position.x += TILE_SIZE - (self.position.x % TILE_SIZE)
-        # gravity section
-        self.test_collisions(pygame.Rect(self.position.x, self.position.y + 1, TILE_SIZE, TILE_SIZE), level.hard_tiles)
-        if self.collisions['bottom']: 
-            self.on_gorund = True
-            self.shift -= Vector2(0, self.gravity)*dt
-            if int(self.position.y % TILE_SIZE) > 0:
-                self.position.y -= (self.position.y % TILE_SIZE)
         # jump section
         if self.go_up:
-            self.jumping = True
-            self.go_up = False
             self.test_collisions(pygame.Rect(self.position.x, self.position.y + 1, TILE_SIZE, TILE_SIZE), level.hard_tiles)
             if self.collisions['bottom']:
-                self.jump = Vector2(0, -40)
-        self.test_collisions(pygame.Rect(self.position.x, self.position.y, TILE_SIZE, TILE_SIZE), level.hard_tiles)
-        if self.jump.y > self.gravity or self.collisions['top']:
-            self.jump = Vector2(0, 0)
-        else: 
-            self.on_gorund = False
-            self.jump *= 0.9
-            self.shift += self.jump
+                self.jump_count += 1
+                self.jumping = True
+                self.jump_height = 0
+                self.go_up = False
+            self.test_collisions(pygame.Rect(self.position.x, self.position.y - 1, TILE_SIZE, TILE_SIZE), level.hard_tiles)
+            if self.collisions['top']:
+                self.jumping = False
+                self.falling = True
+                self.jump_height = 0
+                self.go_up = False
+            if self.jump_height >= self.max_jump:
+                self.jumping = False
+                self.falling = True
+                self.jump_height = 0
+                self.go_up = False
+            if self.jumping:
+                self.shift.y -= self.jump_velocity * dt
+                self.jump_height += self.jump_velocity * dt
+        # gravity section
+        self.test_collisions(pygame.Rect(self.position.x, self.position.y + 1, TILE_SIZE, TILE_SIZE), level.hard_tiles)
+        if self.collisions['bottom']:
+            self.on_gorund = True
+            self.falling = False
+            self.jump_count = 0
+            if int(self.position.y % TILE_SIZE) > 0:
+                self.position.y -= (self.position.y % TILE_SIZE)
+        if self.falling:
+            self.shift.y += self.jump_velocity * dt
+
         # new position
         self.position += self.shift
         self.rect = pygame.Rect(self.position.x, self.position.y, TILE_SIZE, TILE_SIZE)
-        # print(self.collisions)
 
     def test_collisions(self, hit_box, tiles):
         self.collisions = {'left' : False, 'right' : False, 'top' : False, 'bottom' : False}
@@ -111,7 +125,7 @@ class Player():
                     self.collisions['top'] = True
                 if hit_box.y <= tile.rect.y:
                     self.collisions['bottom'] = True
-                    self.jumping = False
+                    # self.jumping = False
 
     def check_death(self):
         if self.position.y > WINDOW_HEIGHT:
