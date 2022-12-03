@@ -56,6 +56,9 @@ class Game():
             fade_in_transition(self.screen, lambda: render(self.screen, self.player, self.level, self.camera, self.fps_counter))
         self.loop()
 
+    def enter_cave(self, position, rect, alpha=255):
+        return enter_cave(self.screen, lambda: render(self.screen, self.player, self.level, self.camera, self.fps_counter), alpha, position, rect, radius=900)
+
 
 if __name__ == "__main__":
     Game()

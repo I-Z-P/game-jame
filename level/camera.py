@@ -26,7 +26,7 @@ class Camera():
         player.rect = pygame.Rect(player.position.x, player.position.y, TILE_SIZE, TILE_SIZE)
         self.position.x += player.shift.x
         self.position.y = player.position.y
-        self.position.y += (self.position.y % TILE_SIZE)
+        # self.position.y += (self.position.y % TILE_SIZE)
 
     def update(self, player):
         if self.model == 'static':
