@@ -15,7 +15,7 @@ from random import randint
 
 
 class Player():
-    def __init__(self, pos=[0,0], player_images=animations_knight):
+    def __init__(self, pos=[0,0], player_images=animations_knight, hp=100):
         self.position = Vector2(pos)
         self.shift = Vector2(0, 0)
         self.jump_velocity = 10
@@ -36,6 +36,8 @@ class Player():
         self.initialize_animation(player_images)
         self.attacking = False
         self.dt = 0
+        self.type = 'player'
+        self.hp = hp
         #self.stone = Stone("#a7180c")
 
     def initialize_animation(self, player_images):

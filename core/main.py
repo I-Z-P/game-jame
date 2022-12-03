@@ -30,6 +30,8 @@ class Game():
         # debug_msg(delta_time)
         for obj in self.objects:
             obj.update(self, delta_time)
+            if obj.type == "agressive":
+                obj.fight(self.player)
         self.camera.update(self.objects[1].enemy)
 
     def loop(self):
@@ -53,7 +55,7 @@ class Game():
     def new_game(self):
         self.level = Level()
         self.player = Player()
-        self.objects = [self.player, Enemy([0,0], animations_knight)]
+        self.objects = [self.player, Enemy([1800,0], animations_knight)]
         self.camera = Camera(self.screen)
         if not DEV:
             fade_in_transition(self.screen, lambda: render(self.screen, self.player, self.level, self.camera, self.fps_counter))
