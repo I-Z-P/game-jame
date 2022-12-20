@@ -19,13 +19,14 @@ class Camera():
     def static(self):
         pass
 
-    def follow_player(self, player):
-        player.position.x += ((WINDOW_WIDTH / 2) - player.position.x - TILE_SIZE/2)
-        # player.position.y += ((WINDOW_HEIGHT / 2) - player.position.y - TILE_SIZE/2)
+    def follow_player(self, player, delay=10):
+        player.position.x += ((WINDOW_WIDTH / 2) - player.position.x - TILE_SIZE/2) / delay
+        if player.on_gorund:
+            player.position.y -= player.position.y % TILE_SIZE
         player.rect = pygame.Rect(player.position.x, player.position.y, TILE_SIZE, TILE_SIZE)
         self.position.x += player.shift.x
-        # self.position.y += player.shift.y
-
+        self.position.y = player.position.y
+        # self.position.y += (self.position.y % TILE_SIZE)
 
     def update(self, player):
         if self.model == 'static':

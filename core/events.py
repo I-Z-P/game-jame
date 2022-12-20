@@ -10,6 +10,8 @@ from ui.menu import In_game_menu
 
 def keyboard_assignments(pressed_keys, game):
     if pressed_keys[pygame.K_ESCAPE]:
+        if DEV:
+            sys.exit()
         in_game_menu = In_game_menu(game.screen, game)
         in_game_menu.loop()
     if pressed_keys[pygame.K_LEFT]:
@@ -19,11 +21,13 @@ def keyboard_assignments(pressed_keys, game):
     if pressed_keys[pygame.K_UP]:
         game.player.go_up = True
     if pressed_keys[pygame.K_DOWN]:
-        game.player.roll()
+        # game.player.roll()
+        pass
     if pressed_keys[pygame.K_SPACE]:
-        game.player.attack()
+        game.player.attacking = True
     if pressed_keys[pygame.K_s]:
-        game.player.shield()
+        # game.player.shield()
+        pass
 
 
 def handle_events(game):
@@ -35,10 +39,10 @@ def handle_events(game):
         if event.type == pygame.MOUSEBUTTONDOWN:
             pressed_buttons = pygame.mouse.get_pressed()
             if DEV: print('Mouse clicked:', pressed_buttons)
-            if pressed_buttons[0]:  # left mouse button
-                game.player.attack()
-            if pressed_buttons[2]:  # right mouse button
-                game.player.shield()
+            # if pressed_buttons[0]:  # left mouse button
+            #     game.player.attack()
+            # if pressed_buttons[2]:  # right mouse button
+            #     game.player.shield()
         if event.type == pygame.KEYDOWN:
             if DEV: print('Pressed key:', pygame.key.name(event.key))
     pressed_keys = pygame.key.get_pressed()
