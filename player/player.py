@@ -15,7 +15,7 @@ from random import randint
 
 
 class Player():
-    def __init__(self, pos=[0,0], player_images=animations_knight):
+    def __init__(self, pos=[1000,0], player_images=animations_knight, hp=100):
         self.position = Vector2(pos)
         self.shift = Vector2(0, 0)
         self.jump_velocity = 10
@@ -36,6 +36,8 @@ class Player():
         self.initialize_animation(player_images)
         self.attacking = False
         self.dt = 0
+        self.type = 'player'
+        self.hp = hp
         #self.stone = Stone("#a7180c")
 
     def initialize_animation(self, player_images):
@@ -98,6 +100,7 @@ class Player():
             if self.jumping:
                 self.shift.y -= self.jump_velocity * dt
                 self.jump_height += self.jump_velocity * dt
+            self.velocity = 7
         # gravity section
         self.test_collisions(pygame.Rect(self.position.x, self.position.y + 1, TILE_SIZE, TILE_SIZE), level.hard_tiles)
         if self.collisions['bottom']:
@@ -127,6 +130,21 @@ class Player():
                     self.collisions['bottom'] = True
                     # self.jumping = False
 
+    def got_hit(self, obj, space=30):
+        self.test_collisions(pygame.Rect(self.position.x + space, self.position.y, TILE_SIZE, TILE_SIZE), [obj.enemy])
+        if self.collisions['right']:
+            print("hit")
+            self.go_left = True
+            self.velocity = 100
+            return True
+        self.test_collisions(pygame.Rect(self.position.x - space, self.position.y, TILE_SIZE, TILE_SIZE), [obj.enemy])
+        if self.collisions['left']:
+            self.velocity = 100
+            print("hit")
+            self.go_right = True
+            return True
+        return False
+
     def check_death(self):
         if self.position.y > WINDOW_HEIGHT:
             if not self.done:
@@ -145,6 +163,7 @@ class Player():
         if self.attacking:
             type = 'attack'
             self.attacking = self.a.animate(self.dt, self.facing_left, type)
+            # print(self.test_collisions(self.rect, ))
         elif not self.attacking:
             self.a.animate(self.dt, self.facing_left, type)
         #self.stone.update(screen)

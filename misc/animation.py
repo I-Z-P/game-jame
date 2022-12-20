@@ -62,7 +62,12 @@ class Animation(pygame.sprite.Sprite):
                 for x in range(self.n_animations+1):
                     self.sprites[type][1].append(self.get_sprite(x*self.sprite_WINDOWS_width, 0, self.sprite_WINDOWS_width, self.sprite_height))
                     self.sprites_flipped[type][1].append(pygame.transform.flip(self.sprites[type][1][x], True, False))
-            self.rect = self.sprites[self.type][1][0].get_rect()  
+            try:
+                self.rect = self.sprites['stand'][1][0].get_rect()
+                self.type = 'stand'
+            except:
+                print(self.sprites[self.type])
+                self.rect = self.sprites[self.type][1][0].get_rect()
         return True
 
     def get_sprite(self, x, y, w, h):
